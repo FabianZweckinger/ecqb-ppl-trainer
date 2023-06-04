@@ -16,10 +16,6 @@ print("Starting ECQBPPL Trainer Server")
 with open('database/database.json', encoding='utf8') as f:
     users = json.load(f)['users']
 
-with open('database/abbreviations.json', encoding='utf8') as f:
-    topicsAbbreviations = json.load(f)['topicsAbbreviations']
-
-
 class User(flask_login.UserMixin):
     pass
 
@@ -64,10 +60,20 @@ def login():
 @app.route('/<state>')
 @flask_login.login_required
 def dashboard(state=None):
+    # Reload data from database
+    with open('database/database.json', encoding='utf8') as f:
+        users = json.load(f)['users']
+
+    with open('database/abbreviations.json', encoding='utf8') as f:
+        topicsAbbreviations = json.load(f)['topicsAbbreviations']
+
+    with open('database/questions.json') as f:
+        questions = json.load(f)
+
     current_user = flask_login.current_user
     is_admin = users[current_user.id]["isAdmin"]
     return render_template('dashboard.html', state=state, is_admin=is_admin, topicsAbbreviations=topicsAbbreviations,
-                           users=users)
+                           users=users, questions=questions)
 
 
 @app.route('/api')
