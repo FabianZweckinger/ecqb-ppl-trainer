@@ -174,3 +174,5 @@ sourcefiles/SPL-ECQB-PPL-60-OPR-ge.pdf
 sourcefiles/SPL-ECQB-PPL-70-FPP-ge.pdf
 sourcefiles/SPL-ECQB-PPL-80-AGK-ge.pdf
 sourcefiles/SPL-ECQB-PPL-90-NAV-ge.pdf
+database/questions.json
+secrets.py
