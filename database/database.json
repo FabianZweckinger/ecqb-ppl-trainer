@@ -1,0 +1,38 @@
+{
+  "users": {
+    "user@example.com": {
+      "password": "$5$beEmT6Xbx5zL.6nl$OZ.5a4I/dRw/Km9zYCqvaFAaSq4Vchno6nExXdOH1lC",
+      "salt": "",
+      "isAdmin": true,
+      "lessions": [
+        {
+          "nr": 1,
+          "lession": "ALW",
+          "score": [
+            10,
+            20
+          ],
+          "date": "2023-04-23T18:25:31.212Z"
+        },
+        {
+          "nr": 2,
+          "lession": "NAV",
+          "score": [
+            25,
+            30
+          ],
+          "date": "2023-04-24T19:35:43.661Z"
+        },
+        {
+          "nr": 3,
+          "lession": "MOCKEXAM",
+          "score": [
+            10,
+            20
+          ],
+          "date": "2023-04-26T10:20:44.532Z"
+        }
+      ]
+    }
+  }
+}
