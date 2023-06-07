@@ -1,7 +1,9 @@
 import json
+import random
+
 import flask_login
 import flask
-from flask import render_template
+from flask import render_template, request
 from passlib.hash import sha256_crypt
 
 import secrets
@@ -13,8 +15,32 @@ login_manager.init_app(app)
 
 print("Starting ECQBPPL Trainer Server")
 
-with open('database/database.json', encoding='utf8') as f:
-    users = json.load(f)['users']
+users = {}
+topics_abbreviations = {}
+questions = {}
+
+
+def write_user_db():
+    with open('database/users.json', 'w') as f:
+        json.dump(users, f)
+
+
+def reload_database():
+    with open('database/users.json', encoding='utf8') as f:
+        global users
+        users = json.load(f)
+
+    with open('database/topicAbbreviations.json', encoding='utf8') as f:
+        global topics_abbreviations
+        topics_abbreviations = json.load(f)
+
+    with open('database/questions.json', encoding='utf8') as f:
+        global questions
+        questions = json.load(f)
+
+
+reload_database()
+
 
 class User(flask_login.UserMixin):
     pass
@@ -60,28 +86,89 @@ def login():
 @app.route('/<state>')
 @flask_login.login_required
 def dashboard(state=None):
-    # Reload data from database
-    with open('database/database.json', encoding='utf8') as f:
-        users = json.load(f)['users']
+    reload_database()
 
-    with open('database/abbreviations.json', encoding='utf8') as f:
-        topicsAbbreviations = json.load(f)['topicsAbbreviations']
+    flask_user = flask_login.current_user
+    current_user = users[flask_user.id]
 
-    with open('database/questions.json') as f:
-        questions = json.load(f)
+    quiztype = request.args.get('quiztype')
+    quiz = {}
 
-    current_user = flask_login.current_user
-    is_admin = users[current_user.id]["isAdmin"]
-    return render_template('dashboard.html', state=state, is_admin=is_admin, topicsAbbreviations=topicsAbbreviations,
-                           users=users, questions=questions)
+    if quiztype is not None:
+        # Init questions in user:
+        if quiztype not in current_user['questions']:
+            current_user['questions'][quiztype] = {}
+            for index, q in enumerate(questions[quiztype]):
+                print(index)
+                current_user['questions'][quiztype][index] = {"correctGuesses": 0}
+        write_user_db()
+
+        # Get the least known question
+        least_known_questions = {}  # correctGuesses used as key
+
+        for question_index, value in current_user['questions'][quiztype].items():
+            if value['correctGuesses'] not in least_known_questions:
+                least_known_questions[value['correctGuesses']] = []
+            least_known_questions[value['correctGuesses']].append(question_index)
+        least_known_question_count = min(current_user['questions'][quiztype].keys())
+
+        question = int(random.choice(least_known_questions[int(least_known_question_count)]))
+
+        quiz = {
+            'type': quiztype,
+            'questionNumber': question,
+        }
+
+    return render_template('dashboard.html', state=state, is_admin=current_user["isAdmin"],
+                           topics_abbreviations=topics_abbreviations,
+                           users=users, questions=questions, quiz=quiz)
 
 
-@app.route('/api')
+@app.route('/api/questions')
 @flask_login.login_required
-def protected():
-    with open('database/questions.json') as f:
+def questions_api():
+    with open('database/questions.json', encoding='utf8') as f:
         data = json.load(f)
         return data, 200, {'content-type': 'application/json'}
+
+
+@app.route('/api/user', methods=['POST', 'DELETE', 'PUT'])
+@flask_login.login_required
+def user_api():
+
+    def success():
+        write_user_db()
+        return {'success': True}, 200, {'content-type': 'application/json'}
+
+    def failure():
+        return {'success': False}, 200, {'content-type': 'application/json'}
+
+    req_data = request.get_json()
+
+    if request.method == 'POST':
+        username = req_data['username']
+        password = req_data['password']
+
+        if username not in users:
+            new_user = {
+                "password": sha256_crypt.using(rounds=5000).hash(password),
+                "isAdmin": False,
+                "lessions": []
+            }
+
+            users[username] = new_user
+
+            return success()
+        else:
+            return failure()
+
+    elif request.method == 'DELETE':
+        del users[req_data['username']]
+        return success()
+
+    elif request.method == 'PUT':
+        users[req_data['username']]['isAdmin'] = req_data['isAdmin']
+        return success()
 
 
 @app.route('/logout')

@@ -190,10 +190,10 @@
                     <span>SPL Lektionen</span>
                 </h6>
                 <ul class="nav flex-column mb-2">
-                    {% for key, segment in topicsAbbreviations.items() %}
-                        <li>{{ topicsAbbreviations[i] }}</li>
+                    {% for key, segment in topics_abbreviations.items() %}
+                        <li>{{ topics_abbreviations[i] }}</li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ key }}">
+                            <a class="nav-link" href="/quiz?quiztype={{ key }}">
                                 <span data-feather="file-text"></span>
                                 {{ segment }}
                             </a>
@@ -207,88 +207,261 @@
 
             {% if state == 'questionnaire' %}
 
-            <article class="container mb-5">
-                <h2 class="mt-3 mb-3">Fragenkatalog</h2>
+                <article class="container mb-5">
+                    <h2 class="mt-3 mb-3">Fragenkatalog</h2>
 
-                <div class="p-2 callout callout-primary">
-                    Hinweis: Insgesamt sind 70% der SPL-Fragen öffentlich verfügbar.
-                </div>
+                    <div class="p-2 callout callout-primary">
+                        Bitte beachten Sie, dass der Aufgabenkataloge nur einen Teil der Prüfungsfragen enthält.
+                    </div>
 
-                <div>
-                    {% for key2, segment2 in questions['questions'].items() %}
-                        {% for segment3 in segment2 %}
-                            <section class="mt-5 mb-2">
+                    <div class="mt-5">
+                        {% for key, segment in questions.items() %}
 
-                          <ol class="breadcrumb">
-                            <li class="breadcrumb-item">SPL</li>
-                            <li class="breadcrumb-item">{{ key2 }} {{ loop.index }}</li>
-                          </ol>
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="#{{ key }}">SPL</a></li>
+                                <li class="breadcrumb-item"><a href="#{{ key }}">{{ topics_abbreviations[key] }}</a>
+                                </li>
+                            </ol>
 
-                        <h5>{{ segment3['question'] }}</h5>
-                            <ul class="list-group">
-                              <li class="list-group-item {% if segment3['true_answer'] == 0 %} callout callout-success {% endif %}">A) {{ segment3['answers'][0] }}</li>
-                              <li class="list-group-item {% if segment3['true_answer'] == 1 %} callout callout-success {% endif %}">B) {{ segment3['answers'][1] }}</li>
-                              <li class="list-group-item {% if segment3['true_answer'] == 2 %} callout callout-success {% endif %}">C) {{ segment3['answers'][2] }}</li>
-                              <li class="list-group-item {% if segment3['true_answer'] == 3 %} callout callout-success {% endif %}">D) {{ segment3['answers'][3] }}</li>
-                            </ul>
-                        </section>
+                        {% endfor %}
+                    </div>
 
-                    {% endfor %}
+                    <div>
+                        {% for key, segment in questions.items() %}
+                            <div id="{{ key }}"></div>
 
-                </div>
-            {% endfor %}
-            </article>
+                            {% for segment2 in segment %}
+                                <section class="mt-5 mb-2">
+
+                                    <ol class="breadcrumb">
+                                        <li class="breadcrumb-item">SPL</li>
+                                        <li class="breadcrumb-item">{{ topics_abbreviations[key] }} {{ loop.index }}</li>
+                                    </ol>
+
+                                    <h5>{{ segment2['question'] }}</h5>
+                                    <ul class="list-group">
+                                        <li class="list-group-item {% if segment2['true_answer'] == 0 %} callout callout-success {% endif %}">
+                                            A) {{ segment2['answers'][0] }}</li>
+                                        <li class="list-group-item {% if segment2['true_answer'] == 1 %} callout callout-success {% endif %}">
+                                            B) {{ segment2['answers'][1] }}</li>
+                                        <li class="list-group-item {% if segment2['true_answer'] == 2 %} callout callout-success {% endif %}">
+                                            C) {{ segment2['answers'][2] }}</li>
+                                        <li class="list-group-item {% if segment2['true_answer'] == 3 %} callout callout-success {% endif %}">
+                                            D) {{ segment2['answers'][3] }}</li>
+                                    </ul>
+                                </section>
+
+                            {% endfor %}
+
+                        {% endfor %}
+                    </div>
+                </article>
 
             {% elif state == 'usermanagement' and is_admin %}
-                <div class="container">
-                    <h2 class="mt-3 mb-3">Benutzerverwaltung</h2>
-                    <div class="table-responsive">
-                        <table class="table table-striped table-sm">
-                            <thead>
-                            <tr>
-                                <th scope="col">Benutzername</th>
-                                <th scope="col">Rolle</th>
-                                <th scope="col">Aktion</th>
-                            </tr>
-                            </thead>
 
-                            <tbody style="vertical-align: middle;">
-
-                            {% for key, segment in users.items() %}
+                <article>
+                    <div class="container">
+                        <h2 class="mt-3 mb-3">Benutzerverwaltung</h2>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-sm">
+                                <thead>
                                 <tr>
-                                    <td>{{ key }}</td>
-                                    <td>Admin</td>
-                                    <td>
-                                        <button type="button" class="btn btn-danger">Löschen</button>
-                                        {% if segment == None %}
-                                            <button type="button" class="btn btn-danger">zu Administrator</button>
-                                        {% else %}
-                                            <button type="button" class="btn btn-primary">zu Standardnutzer</button>
-                                        {% endif %}
-                                    </td>
+                                    <th scope="col">Benutzername</th>
+                                    <th scope="col">Rolle</th>
+                                    <th scope="col">Aktion</th>
                                 </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
+                                </thead>
 
-                        <button type="button" class="btn btn-primary">Nutzer anlegen</button>
+                                <tbody style="vertical-align: middle;">
+
+                                {% for key, segment in users.items() %}
+                                    <tr>
+                                        <td>{{ key }}</td>
+                                        {% if segment['isAdmin'] %}
+                                            <td>Admin</td>
+                                        {% else %}
+                                            <td>Standardbenutzer</td>
+                                        {% endif %}
+                                        <td>
+                                            <button onclick="deleteUser('{{ key }}')" type="button"
+                                                    class="btn btn-danger">
+                                                Löschen
+                                            </button>
+                                            {% if segment['isAdmin'] %}
+                                                <button onclick="makeDefaultUser('{{ key }}')" type="button"
+                                                        class="btn btn-primary">zu Standardbenutzer
+                                                </button>
+                                            {% else %}
+                                                <button onclick="makeAdmin('{{ key }}')" type="button"
+                                                        class="btn btn-danger">zu Administrator
+                                                </button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                    data-bs-target="#createUserModal">Benutzer anlegen
+                            </button>
+                        </div>
                     </div>
-                </div>
+
+                    <!-- Create user modal -->
+                    <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog">
+                            <form id="createUserForm" class="modal-content needs-validation" novalidate>
+
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="createUserModalLabel">Benutzer anlegen</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                </div>
+
+                                <div class="container mt-3">
+                                    <div>
+                                        <label for="validationUsername">Benutzername</label>
+                                        <input type="text" class="form-control" id="validationUsername"
+                                               placeholder="Benutzername" name="username" required>
+                                        <div class="valid-feedback">
+                                            Benutzername ok!
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="mt-2" for="validationPassword">Passwort</label>
+                                        <input type="text" class="form-control" id="validationPassword"
+                                               placeholder="Passwort" name="password" required>
+                                        <div class="valid-feedback">
+                                            Passwort ok!
+                                        </div>
+                                    </div>
+
+                                    <script>
+                                        // Example starter JavaScript for disabling form submissions if there are invalid fields
+                                        (function () {
+                                            'use strict';
+                                            window.addEventListener('load', function () {
+                                                // Fetch all the forms we want to apply custom Bootstrap validation styles to
+                                                var forms = document.getElementsByClassName('needs-validation');
+                                                // Loop over them and prevent submission
+                                                var validation = Array.prototype.filter.call(forms, function (form) {
+                                                    form.addEventListener('submit', function (event) {
+                                                        if (form.checkValidity() === false) {
+                                                            event.preventDefault();
+                                                            event.stopPropagation();
+                                                        }
+                                                        form.classList.add('was-validated');
+                                                    }, false);
+                                                });
+                                            }, false);
+                                        })();
+                                    </script>
+                                </div>
+
+                                <div class="modal-footer mt-3">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Benutzer
+                                        anlegen
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <script>
+                        function createUserPrivilege(username) {
+                            crudReqUser('POST', {username: username})
+                        }
+
+                        function deleteUser(username) {
+                            crudReqUser('DELETE', {username: username})
+                        }
+
+                        function makeDefaultUser(username) {
+                            crudReqUser('PUT', {username: username, isAdmin: false})
+                        }
+
+                        function makeAdmin(username) {
+                            crudReqUser('PUT', {username: username, isAdmin: true})
+                        }
+
+                        function createUser(username, password) {
+                            crudReqUser('POST', {username: username, password: password})
+                        }
+
+                        const form = document.getElementById('createUserForm');
+
+                        form.addEventListener('submit', (event) => {
+                            createUser(form.elements['username'].value, form.elements['password'].value)
+                            event.preventDefault();
+                        });
+                    </script>
+                </article>
+
+            {% elif state == 'quiz' %}
+
+                <article class="container">
+                    <h2 class="mt-3 mb-3">Quiz {{ topics_abbreviations[quiz['type']] }}</h2>
+
+                    <section class="mt-5 mb-2">
+
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">SPL</li>
+                            <li class="breadcrumb-item">{{ topics_abbreviations[quiz['type']] }} {{ quiz['questionNumber'] + 1 }}</li>
+                        </ol>
+
+                        <h5>{{ questions[quiz['type']][quiz['questionNumber']]['question'] }}</h5>
+
+                        <ul class="list-group" id="answer-list">
+                            {% for i in "0123" %}
+                                <li style="cursor: pointer;" class="list-group-item list-group-item-action"
+                                    style="list-style-type: none;">
+                                    {{ questions[quiz['type']][quiz['questionNumber']]['answers'][i|int] }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+
+                        <script>
+                            function shuffleArray(array) {
+                                return array.sort(() => Math.random() - 0.5);
+                            }
+
+                            function shuffle() {
+                                let container = document.getElementById('answer-list');
+                                let elementsArray = Array.prototype.slice.call(container.getElementsByClassName('list-group-item'));
+                                elementsArray.forEach(function (element) {
+                                    container.removeChild(element);
+                                })
+                                shuffleArray(elementsArray);
+                                elementsArray.forEach(function (element) {
+                                    container.appendChild(element);
+                                })
+                            }
+
+                            shuffle()
+                        </script>
+                    </section>
+                </article>
+
             {% else %}
 
-                <div class="container">
+                <article class="container">
+
                 <h2 class="mt-3 mb-3">SPL Lektionen</h2>
 
 
-                {% for key, segment in topicsAbbreviations.items() %}
+                {% for key, segment in topics_abbreviations.items() %}
                     {% if loop.index % 2 == 1 %}
                         <div class="row gx-5">
                             <div class="col pb-3">
                                 <div class="card callout callout-primary">
                                     <div class="card-body">
                                         <h5 class="card-title">{{ segment }}</h5>
-                                        <p>30 Fragen -
-                                            <a href="#" class="card-link">Quiz starten</a></p>
+                                        <p>{{ questions[key]|length }} Fragen -
+                                            <a href="/quiz?quiztype={{ key }}" class="card-link">Quiz starten</a></p>
                                         <div class="progress mt-3 mb-3">
                                             <div class="progress-bar" role="progressbar" style="width: 25%;"
                                                  aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%
@@ -303,7 +476,7 @@
                                     <div class="card-body">
                                         <h5 class="card-title">{{ segment }}</h5>
                                         <p>30 Fragen -
-                                            <a href="#" class="card-link">Quiz starten</a></p>
+                                            <a href="/quiz?quiztype={{ key }}" class="card-link">Quiz starten</a></p>
                                         <div class="progress mt-3 mb-3">
                                             <div class="progress-bar" role="progressbar" style="width: 25%;"
                                                  aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%
@@ -317,13 +490,13 @@
 
                 {% endfor %}
 
-                {% if topicsAbbreviations|length % 2 == 1 %}
+                {% if topics_abbreviations|length % 2 == 1 %}
                     <div class="col pb-3" style="visibility: hidden">
                         <div class="card callout callout-primary">
                             <div class="card-body">
                                 <h5 class="card-title">Luftrecht</h5>
                                 <p>30 Fragen -
-                                    <a href="#" class="card-link">Quiz starten</a></p>
+                                    <a href="" class="card-link">Quiz starten</a></p>
                                 <div class="progress mt-3 mb-3">
                                     <div class="progress-bar" role="progressbar" style="width: 25%;"
                                          aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%
@@ -413,7 +586,7 @@
 
                 <canvas class="my-4 w-100" id="myChart" width="900" height="380"></canvas>
             {% endif %}
-            </div>
+            </article>
         </main>
     </div>
 </div>
@@ -486,6 +659,19 @@
         })
     })()
 
+    function crudReqUser(method, json) {
+        const requestOption = {
+            method: method,
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(json),
+        };
+
+        fetch(`/api/user`, requestOption)
+            .then((response) => response.json())
+            .then(() => {
+                location.reload();
+            })
+    }
 </script>
 
 </body>
