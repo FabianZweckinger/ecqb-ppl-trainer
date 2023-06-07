@@ -392,6 +392,20 @@
                             crudReqUser('POST', {username: username, password: password})
                         }
 
+                        function crudReqUser(method, json) {
+                            const requestOption = {
+                                method: method,
+                                headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify(json),
+                            };
+
+                            fetch(`/api/user`, requestOption)
+                                .then((response) => response.json())
+                                .then(() => {
+                                    location.reload();
+                                })
+                        }
+
                         const form = document.getElementById('createUserForm');
 
                         form.addEventListener('submit', (event) => {
@@ -415,9 +429,9 @@
 
                         <h5>{{ questions[quiz['type']][quiz['questionNumber']]['question'] }}</h5>
 
-                        <ul class="list-group" id="answer-list">
+                        <ul class="list-group" id="answer-list" data-quiz-type="{{ quiz['type'] }}" data-question-number="{{ quiz['questionNumber'] }}">
                             {% for i in "0123" %}
-                                <li style="cursor: pointer;" class="list-group-item list-group-item-action"
+                                <li style="cursor: pointer;" onclick="clickAnswer({{ i|int }})" class="list-group-item list-group-item-action"
                                     style="list-style-type: none;">
                                     {{ questions[quiz['type']][quiz['questionNumber']]['answers'][i|int] }}
                                 </li>
@@ -442,6 +456,32 @@
                             }
 
                             shuffle()
+
+                            function clickAnswer(answerIndex) {
+                                let answerList = document.getElementById("answer-list")
+                                let quizType = answerList.getAttribute("data-quiz-type")
+                                let questionNumber = answerList.getAttribute("data-question-number")
+
+                                quizReq('POST', {
+                                    answerIndex: answerIndex,
+                                    quizType: quizType,
+                                    questionNumber: questionNumber,
+                                })
+                            }
+
+                            function quizReq(method, json) {
+                                const requestOption = {
+                                    method: method,
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify(json),
+                                };
+
+                                fetch(`/api/quiz`, requestOption)
+                                    .then((response) => response.json())
+                                    .then(() => {
+                                        location.reload();
+                                    })
+                            }
                         </script>
                     </section>
                 </article>
@@ -658,20 +698,6 @@
             }
         })
     })()
-
-    function crudReqUser(method, json) {
-        const requestOption = {
-            method: method,
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(json),
-        };
-
-        fetch(`/api/user`, requestOption)
-            .then((response) => response.json())
-            .then(() => {
-                location.reload();
-            })
-    }
 </script>
 
 </body>

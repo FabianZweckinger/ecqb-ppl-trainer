@@ -153,7 +153,7 @@ def user_api():
             new_user = {
                 "password": sha256_crypt.using(rounds=5000).hash(password),
                 "isAdmin": False,
-                "lessions": []
+                "questions": []
             }
 
             users[username] = new_user
@@ -169,6 +169,30 @@ def user_api():
     elif request.method == 'PUT':
         users[req_data['username']]['isAdmin'] = req_data['isAdmin']
         return success()
+
+
+@app.route('/api/quiz', methods=['POST'])
+@flask_login.login_required
+def quiz_api():
+
+    req_data = request.get_json()
+    flask_user = flask_login.current_user
+    current_user = users[flask_user.id]
+
+    if request.method == 'POST':
+        answer_index = req_data['answerIndex']
+        quiz_type = req_data['quizType']
+        question_number = int(req_data['questionNumber'])
+
+        correct = False
+        if questions[quiz_type][question_number]['true_answer'] == answer_index:
+            correct = True
+
+        correct_guesses = current_user['questions'][quiz_type][str(question_number)]["correctGuesses"] + 1
+        current_user['questions'][quiz_type][str(question_number)]["correctGuesses"] = correct_guesses
+        write_user_db()
+
+        return {'correct': correct}, 200, {'content-type': 'application/json'}
 
 
 @app.route('/logout')
