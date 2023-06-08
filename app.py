@@ -91,6 +91,52 @@ def dashboard(state=None):
     flask_user = flask_login.current_user
     current_user = users[flask_user.id]
 
+    progress = {}
+    for topic in topics_abbreviations.keys():
+        print(current_user['questions'].keys())
+        if topic in current_user['questions'].keys():
+            questions_correct_min = [0, 0, 0]
+            questions_correct_exact = [0, 0, 0]
+            questions_count = len(current_user['questions'][topic].items())
+
+            for question_index, value in current_user['questions'][topic].items():
+                if value['correctGuesses'] >= 1:
+                    questions_correct_min[0] = questions_correct_min[0] + 1
+                if value['correctGuesses'] >= 2:
+                    questions_correct_min[1] = questions_correct_min[1] + 1
+                if value['correctGuesses'] >= 3:
+                    questions_correct_min[2] = questions_correct_min[2] + 1
+
+                if value['correctGuesses'] == 1:
+                    questions_correct_exact[0] = questions_correct_exact[0] + 1
+                elif value['correctGuesses'] == 2:
+                    questions_correct_exact[1] = questions_correct_exact[1] + 1
+                elif value['correctGuesses'] >= 3:
+                    questions_correct_exact[2] = questions_correct_exact[2] + 1
+
+            progress_absolute = [round(questions_correct_min[0] / questions_count * 100),
+                                 round(questions_correct_min[1] / questions_count * 100),
+                                 round(questions_correct_min[2] / questions_count * 100)]
+            progress_relative = [round(questions_correct_exact[0] / questions_count * 100),
+                                 round(questions_correct_exact[1] / questions_count * 100),
+                                 round(questions_correct_exact[2] / questions_count * 100)]
+
+            progress[topic] = {'absolute': {'1': progress_absolute[0],
+                                            '2': progress_absolute[1],
+                                            '3': progress_absolute[2]},
+                               'relative': {'1': progress_relative[0],
+                                            '2': progress_relative[1],
+                                            '3': progress_relative[2]},
+                               }
+        else:
+            progress[topic] = {'absolute': {'1': 0,
+                                            '2': 0,
+                                            '3': 0},
+                               'relative': {'1': 0,
+                                            '2': 0,
+                                            '3': 0}
+                               }
+
     quiztype = request.args.get('quiztype')
     quiz = {}
 
@@ -99,7 +145,6 @@ def dashboard(state=None):
         if quiztype not in current_user['questions']:
             current_user['questions'][quiztype] = {}
             for index, q in enumerate(questions[quiztype]):
-                print(index)
                 current_user['questions'][quiztype][index] = {"correctGuesses": 0}
         write_user_db()
 
@@ -119,8 +164,8 @@ def dashboard(state=None):
         }
 
     return render_template('dashboard.html', state=state, is_admin=current_user["isAdmin"],
-                           topics_abbreviations=topics_abbreviations,
-                           users=users, questions=questions, quiz=quiz)
+                           topics_abbreviations=topics_abbreviations, users=users,
+                           questions=questions, quiz=quiz, progress=progress)
 
 
 @app.route('/api/questions')
