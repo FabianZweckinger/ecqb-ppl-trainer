@@ -139,6 +139,10 @@
             border-left-color: #28a745
         }
 
+        .callout-warning {
+            border-left-color: #f0ad4e
+        }
+
     </style>
 </head>
 <body>
@@ -175,7 +179,14 @@
                             Fragenkatalog
                         </a>
                     </li>
-                    {% if is_admin %}
+                </ul>
+
+                {% if is_admin %}
+                    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Administration</span>
+                    </h6>
+
+                    <ul class="nav flex-column mb-2">
                         <li class="nav-item">
                             <a class="nav-link {% if state == 'usermanagement' %}active{% endif %}"
                                href="/usermanagement">
@@ -183,8 +194,9 @@
                                 Benutzer
                             </a>
                         </li>
-                    {% endif %}
-                </ul>
+                    </ul>
+                {% endif %}
+
             </div>
         </nav>
 
@@ -195,7 +207,7 @@
                 <article class="container mb-5">
                     <h2 class="mt-3 mb-3">Fragenkatalog</h2>
 
-                    <div class="p-2 callout callout-primary">
+                    <div class="p-2 callout callout-warning">
                         Bitte beachten Sie, dass der Aufgabenkataloge nur einen Teil der Prüfungsfragen enthält.
                     </div>
 
@@ -516,41 +528,33 @@
                         <div class="row gx-5">
                     {% endif %}
 
-                            <div class="col pb-3">
-                                <div class="card callout callout-primary">
-                                    <div class="card-body">
-                                        <h5 class="card-title">{{ segment }}</h5>
-                                        <p>{{ questions[key]|length }} Fragen -
-                                            <a href="/quiz?quiztype={{ key }}">Lernen</a>
-                                            - <a href="/mockexam?quiztype={{ key }}">Probeprüfung starten</a>
-                                        </p>
-                                        <div class="progress mt-3 mb-3">
-                                            <div class="progress-bar" role="progressbar" style="width: 25%;"
-                                                 aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%
-                                            </div>
-                                        </div>
-                                    </div>
+                <div class="col pb-3">
+                    <div class="card callout callout-primary">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ segment }}</h5>
+                            <p>{{ questions[key]|length }} Fragen -
+                                <a href="/quiz?quiztype={{ key }}">Lernen</a>
+                                - <a href="/mockexam?quiztype={{ key }}">Probeprüfung starten</a>
+                            </p>
+                            <div class="progress mt-3 mb-3">
+                                <div class="progress-bar" role="progressbar" style="width: 25%;"
+                                     aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%
                                 </div>
                             </div>
-                    {% if loop.index % 2 == 0 %}
                         </div>
-                    {% endif %}
+                    </div>
+                </div>
+                {% if loop.index % 2 == 0 %}
+                    </div>
+                {% endif %}
 
                 {% endfor %}
 
+                {# Make a mock card, if there is an odd count  #}
                 {% if topics_abbreviations|length % 2 == 1 %}
                     <div class="col pb-3" style="visibility: hidden">
-                        <div class="card callout callout-primary">
-                            <div class="card-body">
-                                <h5 class="card-title">Luftrecht</h5>
-                                <p>30 Fragen -
-                                    <a href="" class="card-link">Quiz starten</a></p>
-                                <div class="progress mt-3 mb-3">
-                                    <div class="progress-bar" role="progressbar" style="width: 25%;"
-                                         aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="card">
+                            <div class="card-body"></div>
                         </div>
                     </div>
                 {% endif %}
