@@ -110,8 +110,7 @@ def dashboard(state=None):
             if value['correctGuesses'] not in least_known_questions:
                 least_known_questions[value['correctGuesses']] = []
             least_known_questions[value['correctGuesses']].append(question_index)
-        least_known_question_count = min(current_user['questions'][quiztype].keys())
-
+        least_known_question_count = min(least_known_questions.keys())
         question = int(random.choice(least_known_questions[int(least_known_question_count)]))
 
         quiz = {
@@ -135,7 +134,6 @@ def questions_api():
 @app.route('/api/user', methods=['POST', 'DELETE', 'PUT'])
 @flask_login.login_required
 def user_api():
-
     def success():
         write_user_db()
         return {'success': True}, 200, {'content-type': 'application/json'}
@@ -174,7 +172,6 @@ def user_api():
 @app.route('/api/quiz', methods=['POST'])
 @flask_login.login_required
 def quiz_api():
-
     req_data = request.get_json()
     flask_user = flask_login.current_user
     current_user = users[flask_user.id]
@@ -188,10 +185,9 @@ def quiz_api():
         correct = False
         if true_answer == int(answer_index):
             correct = True
-
-        correct_guesses = current_user['questions'][quiz_type][str(question_number)]["correctGuesses"] + 1
-        current_user['questions'][quiz_type][str(question_number)]["correctGuesses"] = correct_guesses
-        write_user_db()
+            correct_guesses = current_user['questions'][quiz_type][str(question_number)]["correctGuesses"] + 1
+            current_user['questions'][quiz_type][str(question_number)]["correctGuesses"] = correct_guesses
+            write_user_db()
 
         return {'correct': correct, 'true-answer': true_answer}, 200, {'content-type': 'application/json'}
 

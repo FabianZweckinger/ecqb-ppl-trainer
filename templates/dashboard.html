@@ -440,7 +440,14 @@
                             {% endfor %}
                         </ul>
 
+                        <button id="continue-quiz-on-failure-button" onclick="continueQuizOnFailure()" type="button"
+                                class="btn btn-primary mt-2" style="display:none">Weiter
+                        </button>
+
+
                         <script>
+                            let blockFurtherGuesses = false // When a guess has been made, this prevents further answers
+
                             function shuffleArray(array) {
                                 return array.sort(() => Math.random() - 0.5);
                             }
@@ -460,14 +467,17 @@
                             shuffle()
 
                             function clickAnswer(answerIndex, quizType, questionNumber) {
-                                quizReq('POST', {
-                                    answerIndex: answerIndex,
-                                    quizType: quizType,
-                                    questionNumber: questionNumber,
-                                }, answerIndex)
+                                if (!blockFurtherGuesses) {
+                                    blockFurtherGuesses = true
+                                    quizReq('POST', {
+                                        answerIndex: answerIndex,
+                                        quizType: quizType,
+                                        questionNumber: questionNumber,
+                                    }, answerIndex)
+                                }
                             }
 
-                            function quizReq(method, json, answerIndex) {
+                            function quizReq(method, json) {
                                 const requestOption = {
                                     method: method,
                                     headers: {'Content-Type': 'application/json'},
@@ -480,6 +490,11 @@
                                         if (response['correct']) {
                                             let answer = document.getElementById("answer-" + response['true-answer'])
                                             answer.classList.add("list-group-item-success")
+
+                                            // Wait for some time, then load new question:
+                                            setTimeout(() => {
+                                                location.reload();
+                                            }, 1000);
                                         } else {
                                             for (let i = 0; i < 4; i++) {
                                                 let answer = document.getElementById("answer-" + i)
@@ -489,8 +504,16 @@
                                                     answer.classList.add("list-group-item-danger")
                                                 }
                                             }
+
+                                            // Wait for a click on the quiz-container, then load new question
+                                            let continueQuizOnFailureButton = document.getElementById("continue-quiz-on-failure-button")
+                                            continueQuizOnFailureButton.style.display = "initial";
                                         }
                                     })
+                            }
+
+                            function continueQuizOnFailure() {
+                                location.reload();
                             }
                         </script>
                     </section>
