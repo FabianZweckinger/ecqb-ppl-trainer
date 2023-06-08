@@ -429,9 +429,11 @@
 
                         <h5>{{ questions[quiz['type']][quiz['questionNumber']]['question'] }}</h5>
 
-                        <ul class="list-group" id="answer-list" data-quiz-type="{{ quiz['type'] }}" data-question-number="{{ quiz['questionNumber'] }}">
+                        <ul class="list-group" id="answer-list">
                             {% for i in "0123" %}
-                                <li style="cursor: pointer;" onclick="clickAnswer({{ i|int }})" class="list-group-item list-group-item-action"
+                                <li id="answer-{{ i|int }}" style="cursor: pointer;"
+                                    onclick="clickAnswer('{{ i|int }}', '{{ quiz['type'] }}', '{{ quiz['questionNumber'] }}')"
+                                    class="list-group-item list-group-item-action"
                                     style="list-style-type: none;">
                                     {{ questions[quiz['type']][quiz['questionNumber']]['answers'][i|int] }}
                                 </li>
@@ -457,19 +459,15 @@
 
                             shuffle()
 
-                            function clickAnswer(answerIndex) {
-                                let answerList = document.getElementById("answer-list")
-                                let quizType = answerList.getAttribute("data-quiz-type")
-                                let questionNumber = answerList.getAttribute("data-question-number")
-
+                            function clickAnswer(answerIndex, quizType, questionNumber) {
                                 quizReq('POST', {
                                     answerIndex: answerIndex,
                                     quizType: quizType,
                                     questionNumber: questionNumber,
-                                })
+                                }, answerIndex)
                             }
 
-                            function quizReq(method, json) {
+                            function quizReq(method, json, answerIndex) {
                                 const requestOption = {
                                     method: method,
                                     headers: {'Content-Type': 'application/json'},
@@ -478,8 +476,20 @@
 
                                 fetch(`/api/quiz`, requestOption)
                                     .then((response) => response.json())
-                                    .then(() => {
-                                        location.reload();
+                                    .then(response => {
+                                        if (response['correct']) {
+                                            let answer = document.getElementById("answer-" + response['true-answer'])
+                                            answer.classList.add("list-group-item-success")
+                                        } else {
+                                            for (let i = 0; i < 4; i++) {
+                                                let answer = document.getElementById("answer-" + i)
+                                                if (i == response['true-answer']) {
+                                                    answer.classList.add("list-group-item-success")
+                                                } else {
+                                                    answer.classList.add("list-group-item-danger")
+                                                }
+                                            }
+                                        }
                                     })
                             }
                         </script>

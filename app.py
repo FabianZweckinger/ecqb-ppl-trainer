@@ -184,15 +184,16 @@ def quiz_api():
         quiz_type = req_data['quizType']
         question_number = int(req_data['questionNumber'])
 
+        true_answer = int(questions[quiz_type][question_number]['true_answer'])
         correct = False
-        if questions[quiz_type][question_number]['true_answer'] == answer_index:
+        if true_answer == int(answer_index):
             correct = True
 
         correct_guesses = current_user['questions'][quiz_type][str(question_number)]["correctGuesses"] + 1
         current_user['questions'][quiz_type][str(question_number)]["correctGuesses"] = correct_guesses
         write_user_db()
 
-        return {'correct': correct}, 200, {'content-type': 'application/json'}
+        return {'correct': correct, 'true-answer': true_answer}, 200, {'content-type': 'application/json'}
 
 
 @app.route('/logout')
