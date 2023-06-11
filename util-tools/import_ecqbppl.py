@@ -54,7 +54,7 @@ for file in files:
 
                     json_data[topic].append({'question': question,
                                              'answers': answers,
-                                             'true_answer': true_answer,
+                                             'trueAnswer': true_answer,
                                              })
 
 print(json_data)

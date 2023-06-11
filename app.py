@@ -93,7 +93,6 @@ def dashboard(state=None):
 
     progress = {}
     for topic in topics_abbreviations.keys():
-        print(current_user['questions'].keys())
         if topic in current_user['questions'].keys():
             questions_correct_min = [0, 0, 0]
             questions_correct_exact = [0, 0, 0]
@@ -139,33 +138,42 @@ def dashboard(state=None):
 
     quiztype = request.args.get('quiztype')
     quiz = {}
+    mockexam = {}
 
-    if quiztype is not None:
-        # Init questions in user:
-        if quiztype not in current_user['questions']:
-            current_user['questions'][quiztype] = {}
-            for index, q in enumerate(questions[quiztype]):
-                current_user['questions'][quiztype][index] = {"correctGuesses": 0}
-        write_user_db()
+    if state == 'quiz':
+        if quiztype is not None:
+            # Init questions in user:
+            if quiztype not in current_user['questions']:
+                current_user['questions'][quiztype] = {}
+                for index, q in enumerate(questions[quiztype]):
+                    current_user['questions'][quiztype][index] = {"correctGuesses": 0}
+            write_user_db()
 
-        # Get the least known question
-        least_known_questions = {}  # correctGuesses used as key
+            # Get the least known question
+            least_known_questions = {}  # correctGuesses used as key
 
-        for question_index, value in current_user['questions'][quiztype].items():
-            if value['correctGuesses'] not in least_known_questions:
-                least_known_questions[value['correctGuesses']] = []
-            least_known_questions[value['correctGuesses']].append(question_index)
-        least_known_question_count = min(least_known_questions.keys())
-        question = int(random.choice(least_known_questions[int(least_known_question_count)]))
+            for question_index, value in current_user['questions'][quiztype].items():
+                if value['correctGuesses'] not in least_known_questions:
+                    least_known_questions[value['correctGuesses']] = []
+                least_known_questions[value['correctGuesses']].append(question_index)
+            least_known_question_count = min(least_known_questions.keys())
+            question = int(random.choice(least_known_questions[int(least_known_question_count)]))
 
-        quiz = {
-            'type': quiztype,
-            'questionNumber': question,
-        }
+            quiz = {
+                'type': quiztype,
+                'questionNumber': question,
+            }
+    elif state == 'mockexam':
+        if quiztype is not None:
+            indexes = random.sample(range(len(questions[quiztype])), 10)
+            mockexam = {
+                'type': quiztype,
+                'questionNumbers': indexes,
+            }
 
     return render_template('dashboard.html', state=state, is_admin=current_user["isAdmin"],
                            topics_abbreviations=topics_abbreviations, users=users,
-                           questions=questions, quiz=quiz, progress=progress)
+                           questions=questions, quiz=quiz, mockexam=mockexam, progress=progress)
 
 
 @app.route('/api/questions')
@@ -226,15 +234,53 @@ def quiz_api():
         quiz_type = req_data['quizType']
         question_number = int(req_data['questionNumber'])
 
-        true_answer = int(questions[quiz_type][question_number]['true_answer'])
-        correct = False
+        true_answer = int(questions[quiz_type][question_number]['trueAnswer'])
+
         if true_answer == int(answer_index):
             correct = True
-            correct_guesses = current_user['questions'][quiz_type][str(question_number)]["correctGuesses"] + 1
-            current_user['questions'][quiz_type][str(question_number)]["correctGuesses"] = correct_guesses
+            current_user['questions'][quiz_type][str(question_number)]["correctGuesses"] += 1
             write_user_db()
+        else:
+            correct = False
+            current_user['questions'][quiz_type][str(question_number)]["correctGuesses"] -= 1
 
-        return {'correct': correct, 'true-answer': true_answer}, 200, {'content-type': 'application/json'}
+        return {'correct': correct, 'trueAnswer': true_answer}, 200, {'content-type': 'application/json'}
+
+
+@app.route('/api/mockexam', methods=['POST'])
+@flask_login.login_required
+def mockexam_api():
+    req_data = request.get_json()
+    flask_user = flask_login.current_user
+    current_user = users[flask_user.id]
+
+    if request.method == 'POST':
+        mockexam_answers = req_data['mockexamAnswers']
+        mockexam_type = req_data['quizType']
+        correct_count = 0
+        incorrect_count = 0
+        answers_correct = {}
+
+        for question_number, answer_index in mockexam_answers.items():
+            question_number = int(question_number)
+            answer_index = int(answer_index)
+            true_answer = int(questions[mockexam_type][question_number]['trueAnswer'])
+            answers_correct[question_number] = true_answer
+
+            if answer_index == true_answer:
+                correct_count += 1
+                current_user['questions'][mockexam_type][str(question_number)]["correctGuesses"] += 1
+            else:
+                incorrect_count += 1
+                current_user['questions'][mockexam_type][str(question_number)]["correctGuesses"] -= 1
+
+        response_json = {'correctCount': correct_count,
+                         'incorrectCount': incorrect_count,
+                         "answersCorrect": answers_correct}
+
+        write_user_db()
+
+        return response_json, 200, {'content-type': 'application/json'}
 
 
 @app.route('/logout')

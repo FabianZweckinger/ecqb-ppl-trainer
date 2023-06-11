@@ -173,7 +173,6 @@
             aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
-    <input class="form-control form-control-dark w-100" type="text" placeholder="Suche" aria-label="Suche">
     <div class="navbar-nav">
         <div class="nav-item text-nowrap">
             <a class="nav-link px-3" href="logout">Abmelden</a>
@@ -227,7 +226,8 @@
                     <h2 class="mt-3 mb-3">Fragenkatalog</h2>
 
                     <div class="p-2 callout callout-warning">
-                        Bitte beachten Sie, dass der Aufgabenkataloge nur einen Teil der Prüfungsfragen enthält.
+                        Bitte beachten Sie, dass der Aufgabenkataloge nur einen Teil (maximal 75%) der Prüfungsfragen
+                        enthält.
                     </div>
 
                     <div class="mt-5">
@@ -256,13 +256,13 @@
 
                                     <h5>{{ segment2['question'] }}</h5>
                                     <ul class="list-group">
-                                        <li class="list-group-item {% if segment2['true_answer'] == 0 %} callout callout-success {% endif %}">
+                                        <li class="list-group-item {% if segment2['trueAnswer'] == 0 %} callout callout-success {% endif %}">
                                             A) {{ segment2['answers'][0] }}</li>
-                                        <li class="list-group-item {% if segment2['true_answer'] == 1 %} callout callout-success {% endif %}">
+                                        <li class="list-group-item {% if segment2['trueAnswer'] == 1 %} callout callout-success {% endif %}">
                                             B) {{ segment2['answers'][1] }}</li>
-                                        <li class="list-group-item {% if segment2['true_answer'] == 2 %} callout callout-success {% endif %}">
+                                        <li class="list-group-item {% if segment2['trueAnswer'] == 2 %} callout callout-success {% endif %}">
                                             C) {{ segment2['answers'][2] }}</li>
-                                        <li class="list-group-item {% if segment2['true_answer'] == 3 %} callout callout-success {% endif %}">
+                                        <li class="list-group-item {% if segment2['trueAnswer'] == 3 %} callout callout-success {% endif %}">
                                             D) {{ segment2['answers'][3] }}</li>
                                     </ul>
                                 </section>
@@ -357,22 +357,22 @@
                                     <script>
                                         // Example starter JavaScript for disabling form submissions if there are invalid fields
                                         (function () {
-                                            'use strict';
+                                            'use strict'
                                             window.addEventListener('load', function () {
                                                 // Fetch all the forms we want to apply custom Bootstrap validation styles to
-                                                var forms = document.getElementsByClassName('needs-validation');
+                                                var forms = document.getElementsByClassName('needs-validation')
                                                 // Loop over them and prevent submission
                                                 var validation = Array.prototype.filter.call(forms, function (form) {
                                                     form.addEventListener('submit', function (event) {
                                                         if (form.checkValidity() === false) {
-                                                            event.preventDefault();
-                                                            event.stopPropagation();
+                                                            event.preventDefault()
+                                                            event.stopPropagation()
                                                         }
-                                                        form.classList.add('was-validated');
-                                                    }, false);
-                                                });
-                                            }, false);
-                                        })();
+                                                        form.classList.add('was-validated')
+                                                    }, false)
+                                                })
+                                            }, false)
+                                        })()
                                     </script>
                                 </div>
 
@@ -413,127 +413,313 @@
                                 method: method,
                                 headers: {'Content-Type': 'application/json'},
                                 body: JSON.stringify(json),
-                            };
+                            }
 
                             fetch(`/api/user`, requestOption)
                                 .then((response) => response.json())
                                 .then(() => {
-                                    location.reload();
+                                    location.reload()
                                 })
                         }
 
-                        const form = document.getElementById('createUserForm');
+                        const form = document.getElementById('createUserForm')
 
                         form.addEventListener('submit', (event) => {
                             createUser(form.elements['username'].value, form.elements['password'].value)
-                            event.preventDefault();
-                        });
+                            event.preventDefault()
+                        })
                     </script>
                 </article>
 
-            {% elif state == 'quiz' %}
+            {% elif state in ['mockexam', 'quiz']: %}
 
-                <article class="container">
-                    <h2 class="mt-3 mb-3">Quiz {{ topics_abbreviations[quiz['type']] }}</h2>
+                <script>
+                    function shuffleArray(array) {
+                        return array.sort(() => Math.random() - 0.5)
+                    }
 
-                    <section class="mt-5 mb-2">
+                    function shuffle() {
+                        const containers = document.getElementsByClassName('list-group')
 
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item">SPL</li>
-                            <li class="breadcrumb-item">{{ topics_abbreviations[quiz['type']] }} {{ quiz['questionNumber'] + 1 }}</li>
-                        </ol>
+                        Array.from(containers).forEach(container => {
+                            const elementsArray = Array.prototype.slice.call(container.getElementsByClassName('list-group-item'))
+                            elementsArray.forEach(function (element) {
+                                container.removeChild(element)
+                            })
+                            shuffleArray(elementsArray)
+                            elementsArray.forEach(function (element) {
+                                container.appendChild(element)
+                            })
+                        })
+                    }
+                </script>
 
-                        <h5>{{ questions[quiz['type']][quiz['questionNumber']]['question'] }}</h5>
+                {% if state == 'mockexam' %}
 
-                        <ul class="list-group" id="answer-list">
-                            {% for i in "0123" %}
-                                <li id="answer-{{ i|int }}" style="cursor: pointer;"
-                                    onclick="clickAnswer('{{ i|int }}', '{{ quiz['type'] }}', '{{ quiz['questionNumber'] }}')"
-                                    class="list-group-item list-group-item-action"
-                                    style="list-style-type: none;">
-                                    {{ questions[quiz['type']][quiz['questionNumber']]['answers'][i|int] }}
-                                </li>
-                            {% endfor %}
-                        </ul>
+                    <article class="container">
+                        <h2 class="mt-3 mb-3">Probeprüfung {{ topics_abbreviations[mockexam['type']] }}</h2>
 
-                        <button id="continue-quiz-on-failure-button" onclick="continueQuizOnFailure()" type="button"
-                                class="btn btn-primary mt-2" style="display:none">Weiter
+                        {% for question_number in mockexam['questionNumbers'] %}
+
+                            <section class="mt-5 mb-2">
+
+                                <h5>{{ questions[mockexam['type']][question_number]['question'] }}</h5>
+
+                                <ul class="list-group" id="answer-list-{{ question_number }}">
+                                    {% for i in "0123" %}
+                                        <li id="answer-{{ question_number }}-{{ i|int }}" style="cursor: pointer;"
+                                            onclick="selectAnswer('{{ i|int }}', '{{ mockexam['type'] }}', '{{ question_number }}', this)"
+                                            class="list-group-item list-group-item-action"
+                                            style="list-style-type: none;">
+                                            {{ questions[mockexam['type']][question_number]['answers'][i|int] }}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+
+                                <script>
+                                    shuffle()
+                                </script>
+                            </section>
+
+                        {% endfor %}
+
+                        <button id="evaluate-mockexam-button" onclick="evaluateMockexam('{{ mockexam['type'] }}')"
+                                type="button" class="btn btn-primary my-5 disabled">
+                            Probeprüfung auswerten
                         </button>
 
+                        <div id="mockexam-evaluation-success" style="display: none">
+                            <div class="card my-5 rounded-3 shadow-sm border-success text-center">
+                                <div class="card-header py-3 text-white bg-success border-success">
+                                    <h4 class="my-0 fw-normal">Bestanden</h4>
+                                </div>
+                                <div class="card-body">
+                                    <h1 id="mockexam-percent" class="card-title pricing-card-title">100%</h1>
+                                    <ul class="list-unstyled mt-3 mb-4">
+                                        <li><span id="mockexam-correct-answers">10</span> von <span
+                                                id="mockexam-all-answers">10</span> Fragen wurden richtig
+                                            geantwortet.
+                                        </li>
+                                        <li>Hinweis: 25% - 50% der Prüfungsfragen sind trotzdem geheim.</li>
+                                        <li>Auswendiglernen der Fragen ist nicht zielführend.</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <a href="/" type="button" class="btn btn-primary mb-5" role="button">Zurück</a>
+                        </div>
+
+                        <div id="mockexam-evaluation-failure" class="my-5" style="display: none">
+                            <div class="card my-5 rounded-3 shadow-sm border-danger text-center">
+                                <div class="card-header py-3 text-white bg-danger border-danger">
+                                    <h4 class="my-0 fw-normal">Fehlgeschlagen</h4>
+                                </div>
+                                <div class="card-body">
+                                    <h1 id="mockexam-percent" class="card-title pricing-card-title">50%</h1>
+                                    <ul class="list-unstyled mt-3 mb-4">
+                                        <li><span id="mockexam-correct-answers">10</span> von <span
+                                                id="mockexam-all-answers">10</span> Fragen wurden richtig
+                                            geantwortet.
+                                        </li>
+                                        <li>Mindestens 75% der Fragen, müssen richtig beantwortet werden.
+                                        </li>
+                                        <li>Hinweis: 25% - 50% der Prüfungsfragen sind geheim.</li>
+                                        <li>Auswendiglernen der Fragen ist nicht zielführend.</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <a href="/" type="button" class="btn btn-primary mb-5" role="button">Zurück</a>
+                        </div>
 
                         <script>
-                            let blockFurtherGuesses = false // When a guess has been made, this prevents further answers
+                            let mockexamAnswers = {}
 
-                            function shuffleArray(array) {
-                                return array.sort(() => Math.random() - 0.5);
-                            }
+                            function selectAnswer(answerIndex, quizType, questionNumber) {
+                                for (let i = 0; i < 4; i++) {
+                                    const answer = document.getElementById("answer-" + questionNumber + "-" + i)
 
-                            function shuffle() {
-                                let container = document.getElementById('answer-list');
-                                let elementsArray = Array.prototype.slice.call(container.getElementsByClassName('list-group-item'));
-                                elementsArray.forEach(function (element) {
-                                    container.removeChild(element);
-                                })
-                                shuffleArray(elementsArray);
-                                elementsArray.forEach(function (element) {
-                                    container.appendChild(element);
-                                })
-                            }
-
-                            shuffle()
-
-                            function clickAnswer(answerIndex, quizType, questionNumber) {
-                                if (!blockFurtherGuesses) {
-                                    blockFurtherGuesses = true
-                                    quizReq('POST', {
-                                        answerIndex: answerIndex,
-                                        quizType: quizType,
-                                        questionNumber: questionNumber,
-                                    }, answerIndex)
+                                    if (i == answerIndex) {
+                                        answer.classList.add("list-group-item-secondary")
+                                        mockexamAnswers[questionNumber] = answerIndex
+                                        if (Object.keys(mockexamAnswers).length === 10) {
+                                            const evaluateMockexamButton = document.getElementById("evaluate-mockexam-button")
+                                            evaluateMockexamButton.classList.remove("disabled")
+                                        }
+                                    } else {
+                                        answer.classList.remove("list-group-item-secondary")
+                                    }
                                 }
                             }
 
-                            function quizReq(method, json) {
+                            function evaluateMockexam(quizType) {
+                                mockexamReq("POST", {
+                                    quizType: quizType,
+                                    mockexamAnswers: mockexamAnswers,
+                                }, mockexamAnswers)
+                            }
+
+                            function mockexamReq(method, json, mockexamAnswers) {
                                 const requestOption = {
                                     method: method,
                                     headers: {'Content-Type': 'application/json'},
                                     body: JSON.stringify(json),
-                                };
+                                }
 
-                                fetch(`/api/quiz`, requestOption)
+                                fetch(`/api/mockexam`, requestOption)
                                     .then((response) => response.json())
                                     .then(response => {
-                                        if (response['correct']) {
-                                            let answer = document.getElementById("answer-" + response['true-answer'])
-                                            answer.classList.add("list-group-item-success")
+                                        const answersCorrect = response["answersCorrect"]
+                                        const correctCount = response["correctCount"]
+                                        const incorrectCount = response["incorrectCount"]
 
-                                            // Wait for some time, then load new question:
-                                            setTimeout(() => {
-                                                location.reload();
-                                            }, 1000);
-                                        } else {
-                                            for (let i = 0; i < 4; i++) {
-                                                let answer = document.getElementById("answer-" + i)
-                                                if (i == response['true-answer']) {
-                                                    answer.classList.add("list-group-item-success")
-                                                } else {
-                                                    answer.classList.add("list-group-item-danger")
-                                                }
+                                        for (const questionNumber in answersCorrect) {
+                                            const isCorrect = mockexamAnswers[questionNumber] == answersCorrect[questionNumber]
+
+                                            const correctAnswer = document.getElementById("answer-" + questionNumber + "-" + answersCorrect[questionNumber])
+                                            correctAnswer.classList.remove("list-group-item-secondary")
+                                            correctAnswer.classList.add("list-group-item-success")
+
+                                            if (!isCorrect) {
+                                                const wrongAnswer = document.getElementById("answer-" + questionNumber + "-" + mockexamAnswers[questionNumber])
+                                                wrongAnswer.classList.remove("list-group-item-secondary")
+                                                wrongAnswer.classList.add("list-group-item-danger")
                                             }
-
-                                            // Wait for a click on the quiz-container, then load new question
-                                            let continueQuizOnFailureButton = document.getElementById("continue-quiz-on-failure-button")
-                                            continueQuizOnFailureButton.style.display = "initial";
                                         }
+
+                                        const mockexamEvaluateButton = document.getElementById("evaluate-mockexam-button")
+                                        mockexamEvaluateButton.style.display = "none"
+
+                                        const allAnswersCount = (correctCount + incorrectCount)
+                                        const correctPercent = correctCount / allAnswersCount
+                                        let mockexamEvaluation
+
+                                        if (correctPercent >= 0.75) {
+                                            mockexamEvaluation = document.getElementById("mockexam-evaluation-success")
+                                            document.getElementById("mockexam-evaluation-failure").remove()
+                                        } else {
+                                            mockexamEvaluation = document.getElementById("mockexam-evaluation-failure")
+                                            document.getElementById("mockexam-evaluation-success").remove()
+                                        }
+                                        mockexamEvaluation.style.display = "initial"
+
+                                        const mockexamCorrectAnswers = document.getElementById("mockexam-correct-answers")
+                                        mockexamCorrectAnswers.innerText = correctCount
+                                        const mockexamAllAnswers = document.getElementById("mockexam-all-answers")
+                                        mockexamAllAnswers.innerText = allAnswersCount
+
+                                        const mockexamPercentText = document.getElementById("mockexam-percent")
+                                        mockexamPercentText.innerText = Math.floor(correctPercent * 100) + "%"
                                     })
                             }
-
-                            function continueQuizOnFailure() {
-                                location.reload();
-                            }
                         </script>
-                    </section>
-                </article>
+                    </article>
+
+                {% elif state == 'quiz' %}
+
+                    <article class="container">
+                        <h2 class="mt-3 mb-3">Quiz {{ topics_abbreviations[quiz['type']] }}</h2>
+
+                        <section class="mt-5 mb-2">
+
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item">SPL</li>
+                                <li class="breadcrumb-item">{{ topics_abbreviations[quiz['type']] }} {{ quiz['questionNumber'] + 1 }}</li>
+                            </ol>
+
+                            <h5>{{ questions[quiz['type']][quiz['questionNumber']]['question'] }}</h5>
+
+                            <ul class="list-group" id="answer-list">
+                                {% for i in "0123" %}
+                                    <li id="answer-{{ i|int }}" style="cursor: pointer;"
+                                        onclick="clickAnswer('{{ i|int }}', '{{ quiz['type'] }}', '{{ quiz['questionNumber'] }}')"
+                                        class="list-group-item list-group-item-action"
+                                        style="list-style-type: none;">
+                                        {{ questions[quiz['type']][quiz['questionNumber']]['answers'][i|int] }}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+
+                            <button id="continue-quiz-on-failure-button" onclick="continueQuizOnFailure()" type="button"
+                                    class="btn btn-primary mt-2" style="display:none">Weiter
+                            </button>
+
+
+                            <script>
+                                let blockFurtherGuesses = false // When a guess has been made, this prevents further answers
+
+                                function shuffleArray(array) {
+                                    return array.sort(() => Math.random() - 0.5)
+                                }
+
+                                function shuffle() {
+                                    const container = document.getElementById('answer-list')
+                                    const elementsArray = Array.prototype.slice.call(container.getElementsByClassName('list-group-item'))
+                                    elementsArray.forEach(function (element) {
+                                        container.removeChild(element)
+                                    })
+                                    shuffleArray(elementsArray)
+                                    elementsArray.forEach(function (element) {
+                                        container.appendChild(element)
+                                    })
+                                }
+
+                                shuffle()
+
+                                function clickAnswer(answerIndex, quizType, questionNumber) {
+                                    if (!blockFurtherGuesses) {
+                                        blockFurtherGuesses = true
+                                        quizReq('POST', {
+                                            answerIndex: answerIndex,
+                                            quizType: quizType,
+                                            questionNumber: questionNumber,
+                                        })
+                                    }
+                                }
+
+                                function quizReq(method, json) {
+                                    const requestOption = {
+                                        method: method,
+                                        headers: {'Content-Type': 'application/json'},
+                                        body: JSON.stringify(json),
+                                    }
+
+                                    fetch(`/api/quiz`, requestOption)
+                                        .then((response) => response.json())
+                                        .then(response => {
+                                            if (response['correct']) {
+                                                const answer = document.getElementById("answer-" + response['trueAnswer'])
+                                                answer.classList.add("list-group-item-success")
+
+                                                // Wait for some time, then load new question:
+                                                setTimeout(() => {
+                                                    location.reload()
+                                                }, 1000)
+                                            } else {
+                                                for (let i = 0; i < 4; i++) {
+                                                    const answer = document.getElementById("answer-" + i)
+                                                    if (i == response['trueAnswer']) {
+                                                        answer.classList.add("list-group-item-success")
+                                                    } else {
+                                                        answer.classList.add("list-group-item-danger")
+                                                    }
+                                                }
+
+                                                // Wait for a click on the quiz-container, then load new question
+                                                const continueQuizOnFailureButton = document.getElementById("continue-quiz-on-failure-button")
+                                                continueQuizOnFailureButton.style.display = "initial"
+                                            }
+                                        })
+                                }
+
+                                function continueQuizOnFailure() {
+                                    location.reload()
+                                }
+                            </script>
+                        </section>
+                    </article>
+
+                {% endif %}
 
             {% else %}
 
@@ -558,7 +744,7 @@
 
                             <div class="mt-3 mb-3" style="cursor: help;"
                                  data-toggle="tooltip" data-placement="top"
-                                 title="Erreiche 100%, indem du alle Fragen mindestens 3-mal richtig beantwortest.
+                                 title="Erreiche 100%, indem du alle Fragen mindestens 3-mal hintereinander richtig beantwortest.
 {{ progress[key]['absolute']['1'] }}% der Fragen wurden 1-mal richtig beantwortet.
 {{ progress[key]['absolute']['2'] }}% der Fragen wurden 2-mal richtig beantwortet.
 {{ progress[key]['absolute']['3'] }}% der Fragen wurden mindestens 3-mal richtig beantwortet.">
@@ -602,6 +788,7 @@
                     </div>
                 {% endif %}
 
+                <!--
                 <h2 class="mt-3 mb-3">Lernstatistik</h2>
 
                 <h5 class="mt-4">Lektionen</h5>
@@ -649,79 +836,80 @@
                 </div>
 
                 <canvas class="mb-4 w-100" id="myChart" width="900" height="380"></canvas>
+
+                <script>
+                    /* globals Chart:false, feather:false */
+
+                    (function () {
+                        'use strict'
+
+                        feather.replace({'aria-hidden': 'true'})
+
+                        // Graphs
+                        var ctx = document.getElementById('myChart')
+
+                        var myChart = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: [
+                                    'Sunday',
+                                    'Monday',
+                                    'Tuesday',
+                                    'Wednesday',
+                                    'Thursday',
+                                    'Friday',
+                                    'Saturday'
+                                ],
+                                datasets: [{
+                                    data: [
+                                        15339,
+                                        21345,
+                                        18483,
+                                        24003,
+                                        23489,
+                                        24092,
+                                        12034
+                                    ],
+                                    lineTension: 0,
+                                    backgroundColor: 'transparent',
+                                    borderColor: '#007bff',
+                                    borderWidth: 4,
+                                    pointBackgroundColor: '#007bff'
+                                }]
+                            },
+                            options: {
+                                scales: {
+                                    yAxes: [{
+                                        ticks: {
+                                            beginAtZero: false
+                                        }
+                                    }]
+                                },
+                                legend: {
+                                    display: false
+                                }
+                            }
+                        })
+                    })()
+                </script>-->
             {% endif %}
             </article>
         </main>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+<script async src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+        crossorigin="anonymous"></script>
+
+<script async src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"
+        integrity="sha384-zNy6FEbO50N+Cg5wap8IKA4M/ZnLJgzc6w2NqACZaK0u0FXfOWRRJOnQtpZun8ha"
         crossorigin="anonymous"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"
         integrity="sha384-uO3SXW5IuS1ZpFPKugNNWqTZRRglnUJK6UAZ/gxOX80nxEkN9NcGZTftn6RzhGWE"
         crossorigin="anonymous"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"
-        integrity="sha384-zNy6FEbO50N+Cg5wap8IKA4M/ZnLJgzc6w2NqACZaK0u0FXfOWRRJOnQtpZun8ha"
-        crossorigin="anonymous"></script>
-
-<script>
-    /* globals Chart:false, feather:false */
-
-    (function () {
-        'use strict'
-
-        feather.replace({'aria-hidden': 'true'})
-
-        // Graphs
-        var ctx = document.getElementById('myChart')
-        
-        var myChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [
-                    'Sunday',
-                    'Monday',
-                    'Tuesday',
-                    'Wednesday',
-                    'Thursday',
-                    'Friday',
-                    'Saturday'
-                ],
-                datasets: [{
-                    data: [
-                        15339,
-                        21345,
-                        18483,
-                        24003,
-                        23489,
-                        24092,
-                        12034
-                    ],
-                    lineTension: 0,
-                    backgroundColor: 'transparent',
-                    borderColor: '#007bff',
-                    borderWidth: 4,
-                    pointBackgroundColor: '#007bff'
-                }]
-            },
-            options: {
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: false
-                        }
-                    }]
-                },
-                legend: {
-                    display: false
-                }
-            }
-        })
-    })()
-</script>
-
+ <script>feather.replace()</script>
 </body>
 </html>
