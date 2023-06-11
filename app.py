@@ -1,15 +1,19 @@
 import json
 import random
-
-import flask_login
 import flask
 from flask import render_template, request
+from waitress import serve
+import flask_login
 from passlib.hash import sha256_crypt
+import configparser
 
-import secrets
+config = configparser.ConfigParser()
+config.read('config.ini')
+
+PORT = config.getint("Server", "Port")
 
 app = flask.Flask(__name__)
-app.secret_key = secrets.secret_key
+app.secret_key = config.get("Server", "SecretKey")
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
 
@@ -204,7 +208,7 @@ def user_api():
             new_user = {
                 "password": sha256_crypt.using(rounds=5000).hash(password),
                 "isAdmin": False,
-                "questions": []
+                "questions": {}
             }
 
             users[username] = new_user
@@ -294,5 +298,6 @@ def unauthorized_handler():
     return app.send_static_file('login.html')
 
 
-if __name__ == '__main__':
-    app.run()
+print('Server initialized')
+print('Server running on localhost:' + str(PORT))
+serve(app, host='0.0.0.0', port=PORT)
