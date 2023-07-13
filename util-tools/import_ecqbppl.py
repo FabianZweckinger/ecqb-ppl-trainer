@@ -1,8 +1,12 @@
+import os
 from PyPDF2 import PdfReader
-import re
 import json
+from tqdm import tqdm
+import fitz
 
 # Make sure the spl-ecqb-ppl files are placed in /sourcefiles directory.
+
+os.makedirs("../database/images", exist_ok=True)
 
 files = {'ALW': '../sourcefiles/SPL-ECQB-PPL-10-ALW-ge.pdf',
          'HPL': '../sourcefiles/SPL-ECQB-PPL-20-HPL-ge.pdf',
@@ -18,46 +22,94 @@ json_data = {'ALW': [], 'HPL': [], 'MET': [],
              'COM': [], 'PFA': [], 'OPR': [],
              'FPP': [], 'AGK': [], 'NAV': []}
 
-for file in files:
+for file in tqdm(files, desc="files"):
     topic = file
 
     reader = PdfReader(files[topic])
 
-    for page in reader.pages[2:]:
-        text = page.extract_text()
+    doc = fitz.Document(files[topic])
+    questions_buffer = {}
+    page_index = 0
+    image_index = 1
 
-        if not text.startswith("Annexes"):
-            if topic == 'ALW':
-                new_text = ""
-                for i in range(text.count('Pts.: 1,00  ')):
-                    new_text = new_text + text.split('Pts.: 1,00  ')[i + 1].split('   ')[0] + '   '
-                text = new_text
-            else:
-                text = text[20:]
+    for page in doc:
 
-            text = text.split(" ", 1)[1].strip()
+        if page_index > 1:
+            lines = page.get_textpage().extractText().split("\n")
 
-            for q in re.split("\s{3}(\d+) ", text):
-                if len(q) > 3:
-                    q = q.strip()  # Cut away spaces
+            result_question_nr = -1
+            result_answers = ["", "", "", ""]
+            result_true_answer = -1
+            result_question = ""
+            result_optional_image_path = ""
 
-                    t = re.split('[¨þ]', q)  # Regex
+            # Temporal loop control variables
+            expects_question = False
+            answer_count = 0
+            answer_count_reverse = 3
 
-                    question = t[0]
+            for line in reversed(lines):
+                if expects_question and answer_count % 4 == 0:
 
-                    answers = [t[1].split(')', 1)[1].strip(),
-                               t[2].split(')', 1)[1].strip(),
-                               t[3].split(')', 1)[1].strip(),
-                               t[4].split('   ')[0].split(')', 1)[1].strip()]
+                    if line.strip().isnumeric():
+                        answer_count_reverse = 3
+                        expects_question = False
+                        result_question_nr = int(line.strip())
 
-                    true_answer = ord(q.split('þ')[1][0]) - ord('A')
+                        if result_question.find("Please pay attention to annex") != -1:
+                            new_result_question = ""
+                            for qline in result_question.splitlines():
+                                if not qline.startswith("Please pay attention to annex"):
+                                    new_result_question += qline + "\n"
+                                else:
+                                    split_line = qline.split(" ")
+                                    result_optional_image_path = split_line[4] + "" + split_line[5]
+                            result_question = new_result_question
 
-                    json_data[topic].append({'question': question,
-                                             'answers': answers,
-                                             'trueAnswer': true_answer,
-                                             })
+                        questions_buffer[result_question_nr] = {
+                            'question': result_question, 'answers': result_answers,
+                            'trueAnswer': result_true_answer, 'image': result_optional_image_path
+                        }
 
-print(json_data)
+                        result_question = ""
+                        result_optional_image_path = ""
+
+                    else:
+                        if result_question != "":
+                            result_question = line.strip() + "\n" + result_question
+                        else:
+                            result_question = line
+
+                if line.startswith(("¨", "þ")):
+                    expects_question = True
+
+                    # Extract question from line string e.g. ¨A) Some answer   OR   þC) Other answer
+                    # answer_count_reverse is used, because the page is read in reverse string from answer "D"
+                    result_answers[answer_count_reverse] = line.split(')', 1)[1].strip()
+
+                    if line.startswith("þ"):
+                        result_true_answer = ord(line.split('þ')[1][0]) - ord('A')
+
+                    answer_count_reverse -= 1
+                    answer_count += 1
+
+        # print(page.get_images())
+        page_index += 1
+
+        if page.get_textpage().extractText().startswith("Annexes"):
+            for img in page.get_images():
+                xref = img[0]
+                image = doc.extract_image(xref)
+                pix = fitz.Pixmap(doc, xref)
+                pix.save("../database/images/" + topic + "annex" + str(image_index) + ".png")
+                image_index += 1
+
+        # Copy page_questions_buffer into json_data
+    for key, value in sorted(questions_buffer.items()):
+        print(value)
+        json_data[topic].append(value)
+
+# print(json_data)
 
 with open('../database/questions.json', 'w') as f:
     json.dump(json_data, f)
