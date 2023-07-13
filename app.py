@@ -1,7 +1,8 @@
 import json
+import os
 import random
 import flask
-from flask import render_template, request
+from flask import render_template, request, send_file
 from waitress import serve
 import flask_login
 from passlib.hash import sha256_crypt
@@ -84,6 +85,12 @@ def login():
         return flask.redirect(flask.url_for('dashboard'))
 
     return app.send_static_file('login.html')
+
+
+@app.route('/images/<image>')
+@flask_login.login_required
+def get_images(image=None):
+    return send_file(os.path.join(app.root_path, 'database', 'images', image + '.png'), mimetype='image/png')
 
 
 @app.route('/')
@@ -299,5 +306,5 @@ def unauthorized_handler():
 
 
 print('Server initialized')
-print('Server running on localhost:' + str(PORT))
+print('Server running on http://localhost:' + str(PORT))
 serve(app, host='0.0.0.0', port=PORT)

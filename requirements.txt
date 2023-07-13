@@ -3,3 +3,6 @@ passlib~=1.7.4
 pypdf2~=3.0.1
 flask_login~=0.6.2
 waitress~=2.1.2
+configparser==6.0.0
+fitz~=0.0.1.dev2
+tqdm~=4.65.0
