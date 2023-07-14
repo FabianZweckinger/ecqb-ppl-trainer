@@ -33,7 +33,6 @@ for file in tqdm(files, desc="files"):
     image_index = 1
 
     for page in doc:
-
         if page_index > 1:
             lines = page.get_textpage().extractText().split("\n")
 
@@ -47,6 +46,7 @@ for file in tqdm(files, desc="files"):
             expects_question = False
             answer_count = 0
             answer_count_reverse = 3
+            answer_buffer = ""
 
             for line in reversed(lines):
                 if expects_question and answer_count % 4 == 0:
@@ -67,7 +67,7 @@ for file in tqdm(files, desc="files"):
                             result_question = new_result_question
 
                         questions_buffer[result_question_nr] = {
-                            'question': result_question, 'answers': result_answers,
+                            'question': result_question, 'answers': result_answers.copy(),
                             'trueAnswer': result_true_answer, 'image': result_optional_image_path
                         }
 
@@ -85,15 +85,17 @@ for file in tqdm(files, desc="files"):
 
                     # Extract question from line string e.g. ¨A) Some answer   OR   þC) Other answer
                     # answer_count_reverse is used, because the page is read in reverse string from answer "D"
-                    result_answers[answer_count_reverse] = line.split(')', 1)[1].strip()
+                    result_answers[answer_count_reverse] = line.split(')', 1)[1].strip() + "\n" + answer_buffer.strip()
 
                     if line.startswith("þ"):
                         result_true_answer = ord(line.split('þ')[1][0]) - ord('A')
 
                     answer_count_reverse -= 1
                     answer_count += 1
+                    answer_buffer = ""
+                else:
+                    answer_buffer = line + "\n"
 
-        # print(page.get_images())
         page_index += 1
 
         if page.get_textpage().extractText().startswith("Annexes"):
@@ -104,12 +106,11 @@ for file in tqdm(files, desc="files"):
                 pix.save("../database/images/" + topic + "annex" + str(image_index) + ".png")
                 image_index += 1
 
-        # Copy page_questions_buffer into json_data
+    # Copy page_questions_buffer into json_data
     for key, value in sorted(questions_buffer.items()):
-        print(value)
         json_data[topic].append(value)
 
-# print(json_data)
+print(json_data)
 
 with open('../database/questions.json', 'w') as f:
     json.dump(json_data, f)
