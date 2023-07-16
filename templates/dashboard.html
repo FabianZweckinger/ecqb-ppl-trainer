@@ -196,14 +196,14 @@
                 {% endif %}
 
                 <ul class="nav flex-column mb-2">
-                        <li class="nav-item">
-                            <a class="nav-link"
-                               href="/logout">
-                                <span data-feather="log-out"></span>
-                                Abmelden
-                            </a>
-                        </li>
-                    </ul>
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           href="/logout">
+                            <span data-feather="log-out"></span>
+                            Abmelden
+                        </a>
+                    </li>
+                </ul>
             </div>
         </nav>
 
@@ -245,7 +245,8 @@
 
                                     <h5>{{ segment2['question'] }}</h5>
                                     {% if segment2['image'] != "" %}
-                                    <img src="/images/{{ key }}{{ segment2['image'] }}" class="mt-3 mb-3 ms-3" alt="{{ key }} {{ segment2['image'] }} image">
+                                        <img src="/images/{{ key }}{{ segment2['image'] }}" class="mt-3 mb-3 ms-3"
+                                             alt="{{ key }} {{ segment2['image'] }} image">
                                     {% endif %}
                                     <ul class="list-group">
                                         <li class="list-group-item {% if segment2['trueAnswer'] == 0 %} callout callout-success {% endif %}">
@@ -291,8 +292,9 @@
                                             <td>Standardbenutzer</td>
                                         {% endif %}
                                         <td>
-                                            <button onclick="deleteUser('{{ key }}')" type="button"
-                                                    class="btn btn-danger">
+                                            <button onclick="showDeleteModal('{{ key }}')" type="button"
+                                                    class="btn btn-danger" data-bs-toggle="modal"
+                                                    data-bs-target="#confirmDeleteUserModal">
                                                 Löschen
                                             </button>
                                             {% if segment['isAdmin'] %}
@@ -300,8 +302,9 @@
                                                         class="btn btn-primary">zu Standardbenutzer
                                                 </button>
                                             {% else %}
-                                                <button onclick="makeAdmin('{{ key }}')" type="button"
-                                                        class="btn btn-danger">zu Administrator
+                                                <button onclick="showAdminModal('{{ key }}')" type="button"
+                                                        class="btn btn-danger" data-bs-toggle="modal"
+                                                        data-bs-target="#confirmUserToAdminModal">zu Administrator
                                                 </button>
                                             {% endif %}
                                         </td>
@@ -333,55 +336,114 @@
                                         <label for="validationUsername">Benutzername</label>
                                         <input type="text" class="form-control" id="validationUsername"
                                                placeholder="Benutzername" name="username" required>
-                                        <div class="valid-feedback">
-                                            Benutzername ok!
-                                        </div>
                                     </div>
                                     <div>
                                         <label class="mt-2" for="validationPassword">Passwort</label>
                                         <input type="text" class="form-control" id="validationPassword"
                                                placeholder="Passwort" name="password" required>
-                                        <div class="valid-feedback">
-                                            Passwort ok!
-                                        </div>
                                     </div>
-
-                                    <script>
-                                        // Example starter JavaScript for disabling form submissions if there are invalid fields
-                                        (function () {
-                                            'use strict'
-                                            window.addEventListener('load', function () {
-                                                // Fetch all the forms we want to apply custom Bootstrap validation styles to
-                                                var forms = document.getElementsByClassName('needs-validation')
-                                                // Loop over them and prevent submission
-                                                var validation = Array.prototype.filter.call(forms, function (form) {
-                                                    form.addEventListener('submit', function (event) {
-                                                        if (form.checkValidity() === false) {
-                                                            event.preventDefault()
-                                                            event.stopPropagation()
-                                                        }
-                                                        form.classList.add('was-validated')
-                                                    }, false)
-                                                })
-                                            }, false)
-                                        })()
-                                    </script>
                                 </div>
 
                                 <div class="modal-footer mt-3">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen
                                     </button>
-                                    <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Benutzer
+                                    <button type='submit' name='submit' class="btn btn-primary">Benutzer
                                         anlegen
+                                    </button>
+                                </div>
+                            </form>
+
+                            <script>
+                                    (() => {
+                                        'use strict'
+
+                                        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+                                        const forms = document.querySelectorAll('.needs-validation')
+
+                                        // Loop over them and prevent submission
+                                        Array.from(forms).forEach(form => {
+                                            form.addEventListener('submit', event => {
+                                                if (!form.checkValidity()) {
+                                                    event.preventDefault()
+                                                    event.stopPropagation()
+                                                }else{
+                                                    createUser(form.elements['username'].value, form.elements['password'].value)
+                                                    event.preventDefault()
+                                                    document.getElementById("")
+                                                    $('#createUserModal').modal('hide');
+                                                }
+                                                form.classList.add('was-validated')
+                                            }, false)
+                                        })
+                                    })()
+                                </script>
+                        </div>
+                    </div>
+
+                    <!-- Confirm user to admin modal -->
+                    <div class="modal fade" id="confirmUserToAdminModal" tabindex="-1"
+                         aria-labelledby="confirmUserToAdminModalLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog">
+                            <form id="confirmUserForm" class="modal-content needs-validation" novalidate>
+
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="confirmUserToAdminModalLabel">Standardbenutzer zu
+                                        Administrator</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                </div>
+
+                                <div class="container mt-3">
+                                    <b>Vorsicht!</b> Als Administrator kann der Benutzer großen Schaden anrichten.
+                                </div>
+
+                                <div class="modal-footer mt-3">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen
+                                    </button>
+                                    <button id="confirmUserToAdminModalButton" class="btn btn-primary"
+                                            data-bs-dismiss="modal">Bestätigen
                                     </button>
                                 </div>
                             </form>
                         </div>
                     </div>
 
+                    <!-- Confirm delete modal -->
+                    <div class="modal fade" id="confirmDeleteUserModal" tabindex="-1"
+                         aria-labelledby="confirmDeleteUserModalLabel"
+                         aria-hidden="true">
+                        <div class="modal-dialog">
+                            <form id="confirmUserForm" class="modal-content needs-validation" novalidate>
+
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="confirmDeleteUserModalLabel">Benutzer löschen</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                </div>
+
+                                <div class="container mt-3">
+                                    <b>Vorsicht!</b> Der Benutzer kann nicht wiederhergestellt werden.
+                                </div>
+
+                                <div class="modal-footer mt-3">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen
+                                    </button>
+                                    <button id="confirmDeleteUserModalButton" class="btn btn-primary"
+                                            data-bs-dismiss="modal">Bestätigen
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+
                     <script>
-                        function createUserPrivilege(username) {
-                            crudReqUser('POST', {username: username})
+                        function showDeleteModal(username) {
+                            const deleteUserModalButton = document.getElementById('confirmDeleteUserModalButton')
+                            deleteUserModalButton.onclick = function () {
+                                deleteUser(username)
+                            }
                         }
 
                         function deleteUser(username) {
@@ -390,6 +452,13 @@
 
                         function makeDefaultUser(username) {
                             crudReqUser('PUT', {username: username, isAdmin: false})
+                        }
+
+                        function showAdminModal(username) {
+                            const adminUserModalButton = document.getElementById('confirmUserToAdminModalButton')
+                            adminUserModalButton.onclick = function () {
+                                makeAdmin(username)
+                            }
                         }
 
                         function makeAdmin(username) {
@@ -413,13 +482,6 @@
                                     location.reload()
                                 })
                         }
-
-                        const form = document.getElementById('createUserForm')
-
-                        form.addEventListener('submit', (event) => {
-                            createUser(form.elements['username'].value, form.elements['password'].value)
-                            event.preventDefault()
-                        })
                     </script>
                 </article>
 
@@ -458,7 +520,12 @@
                                 <h5>{{ questions[mockexam['type']][question_number]['question'] }}</h5>
 
                                 {% if questions[mockexam['type']][question_number]['image'] != "" %}
-                                    <img src="/images/{{ mockexam['type'] }}{{ questions[mockexam['type']][question_number]['image'] }}" class="mt-3 mb-3 ms-3" alt="{{ mockexam['type'] }} {{ questions[mockexam['type']][question_number]['image'] }} image">
+                                    <img src="/images/
+
+
+                                            {{ mockexam['type'] }}{{ questions[mockexam['type']][question_number]['image'] }}"
+                                         class="mt-3 mb-3 ms-3"
+                                         alt="{{ mockexam['type'] }} {{ questions[mockexam['type']][question_number]['image'] }} image">
                                 {% endif %}
 
                                 <ul class="list-group" id="answer-list-{{ question_number }}">
@@ -625,7 +692,12 @@
 
                             <h5>{{ questions[quiz['type']][quiz['questionNumber']]['question'] }}</h5>
                             {% if questions[quiz['type']][quiz['questionNumber']]['image'] != "" %}
-                                <img src="/images/{{ quiz['type'] }}{{ questions[quiz['type']][quiz['questionNumber']]['image'] }}" class="mt-3 mb-3 ms-3" alt="{{ quiz['type'] }} {{ questions[quiz['type']][quiz['questionNumber']]['image'] }} image">
+                                <img src="/images/
+
+
+                                        {{ quiz['type'] }}{{ questions[quiz['type']][quiz['questionNumber']]['image'] }}"
+                                     class="mt-3 mb-3 ms-3"
+                                     alt="{{ quiz['type'] }} {{ questions[quiz['type']][quiz['questionNumber']]['image'] }} image">
                             {% endif %}
 
                             <ul class="list-group" id="answer-list">
@@ -909,6 +981,6 @@
         integrity="sha384-uO3SXW5IuS1ZpFPKugNNWqTZRRglnUJK6UAZ/gxOX80nxEkN9NcGZTftn6RzhGWE"
         crossorigin="anonymous"></script>
 
- <script>feather.replace()</script>
+<script>feather.replace()</script>
 </body>
 </html>
