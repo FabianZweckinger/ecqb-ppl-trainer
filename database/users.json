@@ -1,12 +1,7 @@
 {
-  "user": {
+  "admin": {
     "password": "$5$beEmT6Xbx5zL.6nl$OZ.5a4I/dRw/Km9zYCqvaFAaSq4Vchno6nExXdOH1lC",
     "isAdmin": true,
     "questions": {}
   },
-  "user2": {
-    "password": "$5$beEmT6Xbx5zL.6nl$OZ.5a4I/dRw/Km9zYCqvaFAaSq4Vchno6nExXdOH1lC",
-    "isAdmin": true,
-    "questions": {}
-  }
 }
