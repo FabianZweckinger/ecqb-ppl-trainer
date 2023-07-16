@@ -313,4 +313,4 @@ def unauthorized_handler():
 
 print('Server initialized')
 print('Server running on http://localhost:' + str(PORT))
-#serve(app, host='0.0.0.0', port=PORT)
+serve(app, host='0.0.0.0', port=PORT)
