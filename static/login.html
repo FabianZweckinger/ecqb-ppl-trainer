@@ -13,20 +13,20 @@
 <body class="text-center">
 
 <main class="form-signin">
-    <form action='login' method='POST'>
+    <form action='login' class="needs-validation" novalidate method='POST'>
         <h2 class="mb-3">Anmeldung</h2>
 
         <div class="form-floating">
-            <input type='text' name='username' id='username' placeholder='Benutzername' class="form-control mb-3"/>
+            <input type='text' name='username' id='username' placeholder='Benutzername' class="form-control mb-3" required/>
             <label for="username">Benutzername</label>
         </div>
         <div class="form-floating">
-            <input type='password' name='password' id='password' placeholder='Passwort' class="form-control"/>
+            <input type='password' name='password' id='password' placeholder='Passwort' class="form-control" required/>
             <label for="password">Password</label>
         </div>
         <div class="checkbox mb-3">
             <label>
-                <input type="checkbox" value="remember-me"> Angemeldet bleiben
+                <input type="checkbox" name="remember-me"> Angemeldet bleiben
             </label>
         </div>
         <input type='submit' name='submit' class="w-100 btn btn-lg btn-primary"/>
@@ -36,6 +36,27 @@
     <a href="https://github.com/FabianZweckinger/ecqb-ppl-trainer" target="_blank">Github</a>
     </div>
 </main>
+
+<script>
+(() => {
+  'use strict'
+
+  // Fetch all the forms we want to apply custom Bootstrap validation styles to
+  const forms = document.querySelectorAll('.needs-validation')
+
+  // Loop over them and prevent submission
+  Array.from(forms).forEach(form => {
+    form.addEventListener('submit', event => {
+      if (!form.checkValidity()) {
+        event.preventDefault()
+        event.stopPropagation()
+      }
+
+      form.classList.add('was-validated')
+    }, false)
+  })
+})()
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"

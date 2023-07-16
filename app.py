@@ -81,7 +81,8 @@ def login():
     if username in users and sha256_crypt.verify(flask.request.form['password'], users[username]['password']):
         user = User()
         user.id = username
-        flask_login.login_user(user)
+        remember = 'remember-me' in flask.request.form
+        flask_login.login_user(user, remember=remember)
         return flask.redirect(flask.url_for('dashboard'))
 
     return app.send_static_file('login.html')
