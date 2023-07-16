@@ -226,8 +226,13 @@ def user_api():
             return failure()
 
     elif request.method == 'DELETE':
-        del users[req_data['username']]
-        return success()
+        flask_user = flask_login.current_user
+        # Admins can't delete own user
+        if req_data['username'] != flask_user.id:
+            del users[req_data['username']]
+            return success()
+        else:
+            return failure()
 
     elif request.method == 'PUT':
         users[req_data['username']]['isAdmin'] = req_data['isAdmin']
@@ -308,4 +313,4 @@ def unauthorized_handler():
 
 print('Server initialized')
 print('Server running on http://localhost:' + str(PORT))
-serve(app, host='0.0.0.0', port=PORT)
+#serve(app, host='0.0.0.0', port=PORT)
