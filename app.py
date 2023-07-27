@@ -132,21 +132,35 @@ def dashboard(state=None):
                                  round(questions_correct_exact[1] / questions_count * 100),
                                  round(questions_correct_exact[2] / questions_count * 100)]
 
-            progress[topic] = {'absolute': {'1': progress_absolute[0],
-                                            '2': progress_absolute[1],
-                                            '3': progress_absolute[2]},
-                               'relative': {'1': progress_relative[0],
-                                            '2': progress_relative[1],
-                                            '3': progress_relative[2]},
-                               }
+            progress[topic] = {
+                'absolute':
+                    {
+                        '1': progress_absolute[0],
+                        '2': progress_absolute[1],
+                        '3': progress_absolute[2]
+                    },
+                'relative':
+                    {
+                        '1': progress_relative[0],
+                        '2': progress_relative[1],
+                        '3': progress_relative[2]
+                    },
+            }
         else:
-            progress[topic] = {'absolute': {'1': 0,
-                                            '2': 0,
-                                            '3': 0},
-                               'relative': {'1': 0,
-                                            '2': 0,
-                                            '3': 0}
-                               }
+            progress[topic] = {
+                'absolute':
+                    {
+                        '1': 0,
+                        '2': 0,
+                        '3': 0
+                    },
+                'relative':
+                    {
+                        '1': 0,
+                        '2': 0,
+                        '3': 0
+                    }
+            }
 
     quiztype = request.args.get('quiztype')
     quiz = {}
@@ -326,4 +340,4 @@ def unauthorized_handler():
 
 print('Server initialized')
 print('Server running on http://localhost:' + str(PORT))
-serve(app, host='0.0.0.0', port=PORT)
+#serve(app, host='0.0.0.0', port=PORT)
