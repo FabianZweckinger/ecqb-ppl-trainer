@@ -235,8 +235,21 @@ def user_api():
             return failure()
 
     elif request.method == 'PUT':
-        users[req_data['username']]['isAdmin'] = req_data['isAdmin']
-        return success()
+        if not req_data['isAdmin']:
+            # A user can only be converted to a default user, if there is at least 1 other admin left
+            admin_count = 0
+            for username in users:
+                if users[username]['isAdmin']:
+                    admin_count += 1
+
+            if admin_count > 1:
+                users[req_data['username']]['isAdmin'] = False
+                return success()
+            else:
+                return failure()
+        else:
+            users[req_data['username']]['isAdmin'] = True
+            return success()
 
 
 @app.route('/api/quiz', methods=['POST'])
