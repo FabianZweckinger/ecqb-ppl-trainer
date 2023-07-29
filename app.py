@@ -1,6 +1,7 @@
 import json
 import os
 import random
+from datetime import datetime
 import flask
 from flask import render_template, request, send_file
 from waitress import serve
@@ -11,7 +12,8 @@ import configparser
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-PORT = config.getint("Server", "Port")
+Port = config.getint("Server", "Port")
+Stats_Question_Count_Per_Entry = config.getint("Server", "StatsQuestionCountPerEntry")
 
 app = flask.Flask(__name__)
 app.secret_key = config.get("Server", "SecretKey")
@@ -45,6 +47,44 @@ def reload_database():
 
 
 reload_database()
+
+
+def add_stats(current_user, quiztype, correct, stat_type="quiz"):
+    if current_user['stats'][quiztype] is None:
+        current_user['stats'][quiztype] = []
+
+    # Add new entry
+    stats_entry_len = len(current_user['stats'][quiztype])
+    date_time = datetime.now()
+
+    # Create new entry on the following conditions:
+    # * no entry exists
+    # * type (quiz to mockexam or reverse) was changed
+    # * entry breakpoint was reached
+    # * 1 hour passed
+    if (stats_entry_len == 0 or
+            stats_entry_len > 0 and current_user['stats'][quiztype][-1]['type'] != stat_type or
+            current_user['stats'][quiztype][-1]['correct'] + current_user['stats'][quiztype][-1]['incorrect']
+            >= Stats_Question_Count_Per_Entry or
+            (current_user['stats'][quiztype][-1]['date'] - date_time).total // 3600 > 1):  # 1 hour passed
+
+        current_user['stats'][quiztype].append(
+            {
+                'type': stat_type,
+                'correct': 0,
+                'incorrect': 0,
+                'date': date_time
+            }
+        )
+
+    # Add stats to latest entry
+    if correct:
+        current_user['stats'][quiztype][-1]['correct'] += 1
+    else:
+        current_user['stats'][quiztype][-1]['incorrect'] += 1
+    current_user['stats'][quiztype][-1]['date'] = date_time
+
+    write_user_db()
 
 
 class User(flask_login.UserMixin):
@@ -165,16 +205,24 @@ def dashboard(state=None):
     quiztype = request.args.get('quiztype')
     quiz = {}
     mockexam = {}
+    stats = {}
 
-    if state == 'quiz':
-        if quiztype is not None:
+    if state in ('quiz', 'mockexam', 'stats'):
+        if quiztype != 'spl':
             # Init questions in user:
             if quiztype not in current_user['questions']:
                 current_user['questions'][quiztype] = {}
                 for index, q in enumerate(questions[quiztype]):
                     current_user['questions'][quiztype][index] = {"correctGuesses": 0}
+
+            # Init stats in user:
+            if quiztype not in current_user['stats']:
+                current_user['stats'][quiztype] = []
+
             write_user_db()
 
+    if state == 'quiz':
+        if quiztype is not None:
             # Get the least known question
             least_known_questions = {}  # correctGuesses used as key
 
@@ -196,10 +244,15 @@ def dashboard(state=None):
                 'type': quiztype,
                 'questionNumbers': indexes,
             }
+    elif state == 'stats':
+        if quiztype is not None:
+            stats = {
+                'type': quiztype,
+            }
 
     return render_template('dashboard.html', state=state, is_admin=current_user["isAdmin"],
                            topics_abbreviations=topics_abbreviations, users=users,
-                           questions=questions, quiz=quiz, mockexam=mockexam, progress=progress)
+                           questions=questions, quiz=quiz, mockexam=mockexam, stats=stats, progress=progress)
 
 
 @app.route('/api/questions')
@@ -230,7 +283,8 @@ def user_api():
             new_user = {
                 "password": sha256_crypt.using(rounds=5000).hash(password),
                 "isAdmin": False,
-                "questions": {}
+                "questions": {},
+                "stats": {},
             }
 
             users[username] = new_user
@@ -275,18 +329,21 @@ def quiz_api():
 
     if request.method == 'POST':
         answer_index = req_data['answerIndex']
-        quiz_type = req_data['quizType']
+        quiztype = req_data['quizType']
         question_number = int(req_data['questionNumber'])
 
-        true_answer = int(questions[quiz_type][question_number]['trueAnswer'])
+        true_answer = int(questions[quiztype][question_number]['trueAnswer'])
 
         if true_answer == int(answer_index):
             correct = True
-            current_user['questions'][quiz_type][str(question_number)]["correctGuesses"] += 1
+            current_user['questions'][quiztype][str(question_number)]["correctGuesses"] += 1
+            add_stats(current_user, quiztype, correct=True)
             write_user_db()
         else:
             correct = False
-            current_user['questions'][quiz_type][str(question_number)]["correctGuesses"] -= 1
+            if current_user['questions'][quiztype][str(question_number)]["correctGuesses"] > 0:
+                current_user['questions'][quiztype][str(question_number)]["correctGuesses"] -= 1
+            add_stats(current_user, quiztype, correct=False)
 
         return {'correct': correct, 'trueAnswer': true_answer}, 200, {'content-type': 'application/json'}
 
@@ -314,9 +371,13 @@ def mockexam_api():
             if answer_index == true_answer:
                 correct_count += 1
                 current_user['questions'][mockexam_type][str(question_number)]["correctGuesses"] += 1
+                add_stats(current_user, mockexam_type, correct=True, stat_type='mockexam')
+                current_user['stats'][mockexam_type][0]["correct"] += 1
             else:
                 incorrect_count += 1
-                current_user['questions'][mockexam_type][str(question_number)]["correctGuesses"] -= 1
+                if current_user['questions'][mockexam_type][str(question_number)]["correctGuesses"] > 0:
+                    current_user['questions'][mockexam_type][str(question_number)]["correctGuesses"] -= 1
+                add_stats(current_user, mockexam_type, correct=False, stat_type='mockexam')
 
         response_json = {'correctCount': correct_count,
                          'incorrectCount': incorrect_count,
@@ -339,5 +400,5 @@ def unauthorized_handler():
 
 
 print('Server initialized')
-print('Server running on http://localhost:' + str(PORT))
-#serve(app, host='0.0.0.0', port=PORT)
+print('Server running on http://localhost:' + str(Port))
+# serve(app, host='0.0.0.0', port=PORT)
