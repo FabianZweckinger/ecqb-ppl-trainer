@@ -49,6 +49,14 @@ def reload_database():
 reload_database()
 
 
+def decode_date_string(date_string):
+    return datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S")
+
+
+def encode_date_string(date_time):
+    return date_time.strftime("%Y-%m-%d %H:%M:%S")
+
+
 def add_stats(current_user, quiztype, correct, stat_type="quiz"):
     if current_user['stats'][quiztype] is None:
         current_user['stats'][quiztype] = []
@@ -66,14 +74,14 @@ def add_stats(current_user, quiztype, correct, stat_type="quiz"):
             stats_entry_len > 0 and current_user['stats'][quiztype][-1]['type'] != stat_type or
             current_user['stats'][quiztype][-1]['correct'] + current_user['stats'][quiztype][-1]['incorrect']
             >= Stats_Question_Count_Per_Entry or
-            (current_user['stats'][quiztype][-1]['date'] - date_time).total // 3600 > 1):  # 1 hour passed
+            (decode_date_string(current_user['stats'][quiztype][-1]['date']) - date_time).total_seconds() // 3600 > 1):  # 1 hour passed
 
         current_user['stats'][quiztype].append(
             {
                 'type': stat_type,
                 'correct': 0,
                 'incorrect': 0,
-                'date': date_time
+                'date': date_time.strftime("%Y-%m-%d %H:%M:%S")
             }
         )
 
@@ -82,7 +90,7 @@ def add_stats(current_user, quiztype, correct, stat_type="quiz"):
         current_user['stats'][quiztype][-1]['correct'] += 1
     else:
         current_user['stats'][quiztype][-1]['incorrect'] += 1
-    current_user['stats'][quiztype][-1]['date'] = date_time
+    current_user['stats'][quiztype][-1]['date'] = date_time.strftime("%Y-%m-%d %H:%M:%S")
 
     write_user_db()
 
