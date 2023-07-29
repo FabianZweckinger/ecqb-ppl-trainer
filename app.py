@@ -50,11 +50,11 @@ reload_database()
 
 
 def decode_date_string(date_string):
-    return datetime.strptime(date_string, "%Y-%m-%d %H:%M:%S")
+    return datetime.strptime(date_string, "%d.%b.%Y %H:%M")
 
 
 def encode_date_string(date_time):
-    return date_time.strftime("%Y-%m-%d %H:%M:%S")
+    return date_time.strftime("%d.%b.%Y %H:%M")
 
 
 def add_stats(current_user, quiztype, correct, stat_type="quiz"):
@@ -81,7 +81,7 @@ def add_stats(current_user, quiztype, correct, stat_type="quiz"):
                 'type': stat_type,
                 'correct': 0,
                 'incorrect': 0,
-                'date': date_time.strftime("%Y-%m-%d %H:%M:%S")
+                'date': encode_date_string(date_time)
             }
         )
 
@@ -90,7 +90,7 @@ def add_stats(current_user, quiztype, correct, stat_type="quiz"):
         current_user['stats'][quiztype][-1]['correct'] += 1
     else:
         current_user['stats'][quiztype][-1]['incorrect'] += 1
-    current_user['stats'][quiztype][-1]['date'] = date_time.strftime("%Y-%m-%d %H:%M:%S")
+    current_user['stats'][quiztype][-1]['date'] = encode_date_string(date_time)
 
     write_user_db()
 
@@ -256,6 +256,7 @@ def dashboard(state=None):
         if quiztype is not None:
             stats = {
                 'type': quiztype,
+                'stats': current_user['stats'],
             }
 
     return render_template('dashboard.html', state=state, is_admin=current_user["isAdmin"],

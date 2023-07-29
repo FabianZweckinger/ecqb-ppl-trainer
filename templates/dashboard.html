@@ -503,27 +503,15 @@
                                 </tr>
                                 </thead>
                                 <tbody>
+                                {% for entry in stats['stats'][stats['type']] %}
                                 <tr>
-                                    <td>3</td>
-                                    <td>Luftrecht</td>
-                                    <td>10/20</td>
-                                    <td>50%</td>
-                                    <td>03.06.2023</td>
+                                    <td>{{ entry.index }}</td>
+                                    <td>{{ entry['type'] }}</td>
+                                    <td>{{ entry['correct'] }}/{{ entry['correct'] + entry['incorrect'] }}</td>
+                                    <td>{{ entry['correct'] / entry['correct'] + entry['incorrect'] * 100 }}%</td>
+                                    <td>{{ entry['date'] }}</td>
                                 </tr>
-                                <tr>
-                                    <td>2</td>
-                                    <td>Probeprüfung</td>
-                                    <td>25/30</td>
-                                    <td>83%</td>
-                                    <td>02.06.2023</td>
-                                </tr>
-                                <tr>
-                                    <td>1</td>
-                                    <td>Aerodynamik</td>
-                                    <td>8/10</td>
-                                    <td>80%</td>
-                                    <td>02.06.2023</td>
-                                </tr>
+                                {% endfor %}
                                 </tbody>
                             </table>
                         </div>
