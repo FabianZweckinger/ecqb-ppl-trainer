@@ -577,8 +577,7 @@
                                 <h5>{{ questions[mockexam['type']][question_number]['question'] }}</h5>
 
                                 {% if questions[mockexam['type']][question_number]['image'] != "" %}
-                                    <img src="/images/
-                                            {{ mockexam['type'] }}{{ questions[mockexam['type']][question_number]['image'] }}"
+                                    <img src="/images/{{ mockexam['type'] }}{{ questions[mockexam['type']][question_number]['image'] }}"
                                          class="img-fluid mt-3 mb-3 ms-3"
                                          alt="{{ mockexam['type'] }} {{ questions[mockexam['type']][question_number]['image'] }} image">
                                 {% endif %}
@@ -746,8 +745,7 @@
 
                             <h5>{{ questions[quiz['type']][quiz['questionNumber']]['question'] }}</h5>
                             {% if questions[quiz['type']][quiz['questionNumber']]['image'] != "" %}
-                                <img src="/images/
-                                        {{ quiz['type'] }}{{ questions[quiz['type']][quiz['questionNumber']]['image'] }}"
+                                <img src="/images/{{ quiz['type'] }}{{ questions[quiz['type']][quiz['questionNumber']]['image'] }}"
                                      class="img-fluid mt-3 mb-3 ms-3"
                                      alt="{{ quiz['type'] }} {{ questions[quiz['type']][quiz['questionNumber']]['image'] }} image">
                             {% endif %}
