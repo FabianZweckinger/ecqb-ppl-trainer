@@ -10,8 +10,7 @@
           integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 
 </head>
-<body class="text-center">
-
+<body class="text-center" style="background-image: url('{{url_for('static', filename='/assets/login-image.jpg')}}')">
 <main class="form-signin">
     <form action='login' class="needs-validation" novalidate method='POST'>
         <h2 class="mb-3">Anmeldung</h2>
@@ -76,6 +75,10 @@
         padding-top: 40px;
         padding-bottom: 40px;
         background-color: #f5f5f5;
+        background-size: cover;
+        min-height: 20vh;
+        position: relative;
+        background-position-x: center;
     }
 
     .form-signin {
