@@ -50,11 +50,11 @@ reload_database()
 
 
 def decode_date_string(date_string):
-    return datetime.strptime(date_string, "%d.%b.%Y %H:%M")
+    return datetime.strptime(date_string, "%d. %B %Y %H:%M")
 
 
 def encode_date_string(date_time):
-    return date_time.strftime("%d.%b.%Y %H:%M")
+    return date_time.strftime("%d. %B %Y %H:%M")
 
 
 def add_stats(current_user, quiztype, correct, stat_type="quiz"):
@@ -216,7 +216,7 @@ def dashboard(state=None):
     stats = {}
 
     if state in ('quiz', 'mockexam', 'stats'):
-        if quiztype != 'spl':
+        if quiztype != 'SPL':
             # Init questions in user:
             if quiztype not in current_user['questions']:
                 current_user['questions'][quiztype] = {}
@@ -400,12 +400,12 @@ def mockexam_api():
 @app.route('/logout')
 def logout():
     flask_login.logout_user()
-    return app.send_static_file('login.html')
+    return render_template('login.html')
 
 
 @login_manager.unauthorized_handler
 def unauthorized_handler():
-    return app.send_static_file('login.html')
+    return render_template('login.html')
 
 
 print('Server initialized')
