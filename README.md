@@ -1,5 +1,14 @@
 # ECQD PPL Trainer
 
+* Self-hosted, open source, web-based training platform for theoretical questions pool of european private pilot licenses (ECQB).
+* Multiple choice based quiz system.
+* Every user has an account. The server supports unlimited users.
+* Progress tracking for chapter, making progress visible.
+* Server written in Python3 using Flask. Vue3 and Bootstrap5 used for frontend.
+
+## Showcase
+<img src="App_Showcase.png" alt="App Showcase" width="50%" height="50%">
+
 ## Disclaimer
 ECQB-PPL is an international question bank for private pilot licenses.\
 Up to 75% of the exam questions are published publicly by EDUCADEMY GmbH.\
