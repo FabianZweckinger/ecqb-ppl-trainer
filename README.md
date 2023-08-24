@@ -22,6 +22,3 @@ A script for the extraction of the questions and images is included in this proj
 * Currently, the project's language is German. No translation library used.
 * No user registration is planned.
 * Passwords / usernames / question progress can only be edited in the database files.
-
-## Planned Features:
-* Learning statistics
