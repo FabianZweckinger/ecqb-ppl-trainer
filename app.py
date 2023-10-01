@@ -131,9 +131,8 @@ def login():
         user.id = username
         remember = 'remember-me' in flask.request.form
         flask_login.login_user(user, remember=remember)
-        return flask.redirect(flask.url_for('dashboard'))
 
-    return app.send_static_file('login.html')
+    return flask.redirect(flask.url_for('dashboard'))
 
 
 @app.route('/images/<image>')
@@ -410,4 +409,4 @@ def unauthorized_handler():
 
 print('Server initialized')
 print('Server running on http://localhost:' + str(Port))
-# serve(app, host='0.0.0.0', port=PORT)
+serve(app, host='0.0.0.0', port=Port)
